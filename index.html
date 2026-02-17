@@ -3,421 +3,359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lì Xì 5.0 Pro Max (Fixed)</title>
+    <title>Lì Xì 11.0 - Eternal Legends</title>
     <style>
-        :root { --primary: #e53935; --gold: #ffd700; --dark: #212121; }
+        :root { --primary: #d32f2f; --gold: #fbc02d; --fever: #00e5ff; --ice: #bbdefb; }
         body {
             margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif;
-            background: #ffebee; touch-action: none; user-select: none;
+            background: #121212; touch-action: none; user-select: none;
+            transition: filter 0.3s;
         }
 
-        /* --- SCREENS --- */
-        .screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
-        }
-
-        /* 1. MENU */
-        #menuScreen { background: radial-gradient(circle, #ffcdd2 0%, #e57373 100%); }
-        .logo { font-size: 4rem; text-shadow: 0 5px 10px rgba(0,0,0,0.2); animation: float 3s infinite; }
+        /* Hiệu ứng Debuff */
+        .blur-effect { filter: blur(10px) grayscale(0.5); }
+        .ice-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; border: 15px solid var(--ice); opacity: 0; transition: 0.3s; box-shadow: inset 0 0 50px var(--ice); }
         
-        /* 2. GAME UI */
-        #gameScreen { cursor: none; transition: filter 0.2s; }
-        .hud-bar {
-            position: absolute; top: 10px; left: 10px; right: 10px;
-            display: flex; justify-content: space-between;
-            font-size: 1.5rem; font-weight: 900; color: var(--primary); z-index: 10;
-        }
-        .fever-bar-container {
-            position: absolute; bottom: 20px; left: 10%; width: 80%; height: 10px;
-            background: rgba(0,0,0,0.2); border-radius: 5px; overflow: hidden;
-        }
-        .fever-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ffeb3b, #ff9800); transition: width 0.2s; }
+        /* Giao diện chính */
+        .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: white; }
+        #menuScreen { display: flex; background: radial-gradient(circle, #f44336, #b71c1c); }
+        #gameScreen { background: #fffdfa; cursor: none; }
         
-        /* FEVER EFFECT */
-        .fever-active { animation: rainbow-bg 0.5s infinite; }
-        @keyframes rainbow-bg { 
-            0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } 
-        }
+        .hud { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; font-size: 1.5rem; font-weight: 900; color: var(--primary); z-index: 10; text-shadow: 1px 1px white; }
+        .status-icons { position: absolute; top: 50px; display: flex; gap: 8px; font-size: 1.2rem; }
 
-        /* 3. PICK SCREEN */
-        #pickScreen { background: #b71c1c; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px; }
-        .bag-wrapper { perspective: 1000px; width: 90px; height: 120px; cursor: pointer; }
-        .bag-inner {
-            position: relative; width: 100%; height: 100%; text-align: center;
-            transition: transform 0.8s; transform-style: preserve-3d;
-        }
-        .bag-front, .bag-back {
-            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
-            border-radius: 10px; display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-        .bag-front { background: url('https://cdn-icons-png.flaticon.com/512/6409/6409528.png') center/contain no-repeat; background-color: #fff; }
-        .bag-back { 
-            background: linear-gradient(135deg, #fff 0%, #ffd700 100%); 
-            transform: rotateY(180deg); color: #d32f2f; font-weight: bold; font-size: 1.1rem; border: 2px solid var(--gold);
-        }
-        .bag-wrapper.flipped .bag-inner { transform: rotateY(180deg); }
+        .energy-bar { position: absolute; bottom: 15px; left: 10%; width: 80%; height: 12px; background: rgba(0,0,0,0.1); border-radius: 10px; border: 2px solid var(--primary); overflow: hidden; }
+        .energy-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--fever), #fff); transition: 0.3s; }
 
-        /* 4. REVEAL (BIG CARD) */
-        #revealScreen { background: rgba(0,0,0,0.9); z-index: 100; }
-        .card {
-            width: 300px; height: 450px; background: white; border-radius: 20px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: 0 0 50px var(--gold);
-            animation: cardPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 5px solid var(--gold);
-        }
-        .card-amount { font-size: 3.5rem; color: #d32f2f; font-weight: 900; margin: 20px 0; }
-        
-        /* COMMON */
-        .btn {
-            background: var(--primary); color: white; border: none; padding: 12px 30px;
-            font-size: 1.2rem; border-radius: 30px; margin-top: 15px; cursor: pointer;
-            box-shadow: 0 4px 0 #8e0000;
-        }
+        /* Gacha Cards */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 20px; }
+        .card { perspective: 1000px; width: 90px; height: 130px; cursor: pointer; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: 0.6s; transform-style: preserve-3d; }
+        .card-f, .card-b { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--gold); }
+        .card-f { background: var(--primary); font-size: 2.5rem; }
+        .card-b { background: white; color: var(--primary); font-weight: 800; transform: rotateY(180deg); }
+        .flipped .card-inner { transform: rotateY(180deg); }
+
+        .btn { background: var(--gold); color: #7f0000; border: none; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #b79500; margin-top: 15px; }
         .btn:active { transform: translateY(4px); box-shadow: none; }
-        .admin-btn { position: fixed; top: 10px; right: 10px; opacity: 0.3; cursor: pointer; z-index: 2000; font-size: 24px;}
-
-        /* MODALS */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; }
-        .modal-box { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
+        .admin-trigger { position: fixed; top: 10px; right: 10px; opacity: 0.1; cursor: pointer; z-index: 1000; font-size: 20px; }
         
-        /* History Table */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background: #f2f2f2; }
-
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-        @keyframes cardPop { from{transform:scale(0) rotate(-10deg)} to{transform:scale(1) rotate(0)} }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 380px; color: #333; max-height: 80vh; overflow-y: auto; }
+        textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; font-family: monospace; }
+        
+        @keyframes flash { 0% { background: white; } 100% { background: transparent; } }
+        .lightning-flash { animation: flash 0.1s; }
     </style>
 </head>
 <body>
 
-    <div id="menuScreen" class="screen" style="display: flex;">
-        <div class="admin-btn" onclick="openLogin()">⚙️</div>
-        <div class="logo">🧧</div>
-        <h1 style="color: #b71c1c; margin: 0;">LÌ XÌ 5.0</h1>
-        <p>Phiên bản: Gacha Pro Max (Fixed)</p>
-        <button class="btn" onclick="Game.init()">BẮT ĐẦU</button>
+    <div id="iceOverlay" class="ice-overlay"></div>
+
+    <div id="menuScreen" class="screen">
+        <div class="admin-trigger" onclick="UI.show('loginModal')">⚙️</div>
+        <div style="font-size: 5rem;">🧧</div>
+        <h1 style="margin:0; font-size: 2.5rem;">LÌ XÌ 11.0</h1>
+        <p>Bản nâng cấp Tuyệt Đỉnh 2026</p>
+        <button class="btn" onclick="Game.start()">CHƠI NGAY</button>
     </div>
 
     <div id="gameScreen" class="screen">
-        <div class="hud-bar">
-            <span>⏰ <span id="uiTime">60</span></span>
-            <span>🔥 <span id="uiScore">0</span></span>
+        <div class="hud">
+            <span>⏳ <span id="timeVal">60</span>s</span>
+            <span>💰 <span id="scoreVal">0</span></span>
         </div>
-        <div class="fever-bar-container"><div class="fever-fill" id="feverBar"></div></div>
-        <canvas id="cvs"></canvas>
+        <div class="status-icons" id="statusIcons"></div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="energy-bar"><div class="energy-fill" id="energyFill"></div></div>
     </div>
 
     <div id="pickScreen" class="screen">
-        <h2 style="color:white">CHỌN VẬN MAY</h2>
-        <p style="color:#ffd700">Điểm số: <span id="finalScore">0</span> (Tăng <span id="luckPc">0</span>% tỷ lệ)</p>
-        <div class="grid" id="grid"></div>
+        <h2 style="color:var(--gold)">CHỌN QUÀ MAY MẮN</h2>
+        <p>May mắn tích lũy: +<span id="luckBonus">0</span>%</p>
+        <div class="grid" id="cardGrid"></div>
     </div>
 
     <div id="revealScreen" class="screen">
-        <div class="card">
-            <h3 style="color:#666">PHẦN THƯỞNG CỦA BÉ</h3>
-            <div style="font-size: 4rem;">🎉</div>
-            <div class="card-amount" id="finalAmount">0đ</div>
-            <p style="color:#999; font-size: 0.8rem;">Chúc bé năm mới vui vẻ!</p>
+        <div style="background:white; color:var(--primary); padding:30px; border-radius:25px; border:5px solid var(--gold); width:260px;">
+            <h2>CHÚC MỪNG!</h2>
+            <div id="prizeAmount" style="font-size: 2.5rem; font-weight: 900; margin: 20px 0;">0đ</div>
             <button class="btn" onclick="location.reload()">CHƠI LẠI</button>
         </div>
     </div>
 
     <div id="loginModal" class="modal">
-        <div class="modal-box">
-            <h3>Đăng nhập Admin</h3>
-            <input type="text" id="admUser" placeholder="User" style="width:100%; padding:8px; margin:5px 0;">
-            <input type="password" id="admPass" placeholder="Pass" style="width:100%; padding:8px; margin:5px 0;">
-            <button class="btn" onclick="Admin.login()" style="width:100%">Vào</button>
-            <button class="btn" onclick="closeModal('loginModal')" style="background:#ccc; width:100%">Đóng</button>
+        <div class="modal-content">
+            <h3>🔐 Admin Login</h3>
+            <input type="text" id="admU" placeholder="Tài khoản" style="width:100%; padding:10px; margin-bottom:10px;">
+            <input type="password" id="admP" placeholder="Mật khẩu" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button class="btn" style="width:100%" onclick="Admin.login()">VÀO HỆ THỐNG</button>
+            <button class="btn" style="width:100%; background:#eee;" onclick="UI.hide('loginModal')">ĐÓNG</button>
         </div>
     </div>
 
-    <div id="panelModal" class="modal">
-        <div class="modal-box">
-            <h3>⚙️ Quản Lý</h3>
-            
-            <h4>1. Cấu hình Tỷ lệ</h4>
-            <textarea id="cfgData" rows="4" style="width:100%"></textarea>
-            <button class="btn" onclick="Admin.saveCfg()" style="font-size:0.8rem; padding:5px 10px;">Lưu Cấu Hình</button>
-            
-            <h4>2. Lịch sử Trúng Thưởng</h4>
-            <div style="max-height: 150px; overflow-y: auto;">
-                <table id="historyTable">
-                    <thead><tr><th>Thời gian</th><th>Tiền</th></tr></thead>
-                    <tbody id="historyBody"></tbody>
-                </table>
-            </div>
-            <button class="btn" onclick="Admin.clearHistory()" style="background:#555; font-size:0.8rem; padding:5px 10px;">Xóa Lịch Sử</button>
-            
-            <hr>
-            <button class="btn" onclick="closeModal('panelModal')" style="background:#ccc; width:100%">Đóng Panel</button>
+    <div id="adminPanel" class="modal">
+        <div class="modal-content">
+            <h3 style="margin:0">⚙️ Cấu Hình</h3>
+            <textarea id="cfgData" rows="5"></textarea>
+            <button class="btn" style="width:100%" onclick="Admin.save()">LƯU TỶ LỆ</button>
+            <div id="stats" style="margin:15px 0; font-size: 0.9rem; padding: 10px; background: #f5f5f5; border-radius: 8px;"></div>
+            <button class="btn" style="width:100%; background:#f44336; color:white;" onclick="Admin.clear()">XÓA LỊCH SỬ</button>
+            <button class="btn" style="width:100%; background:#eee;" onclick="UI.hide('adminPanel')">THOÁT</button>
         </div>
     </div>
 
 <script>
-    /* --- SYSTEM: CONFIG & STORAGE --- */
-    const Sys = {
-        defaultCfg: [{a:10000, w:100}, {a:20000, w:40}, {a:50000, w:15}, {a:100000, w:5}, {a:200000, w:1}, {a:500000, w:0}],
-        getCfg: () => JSON.parse(localStorage.getItem('lx5_cfg') || JSON.stringify(Sys.defaultCfg)),
-        setCfg: (d) => localStorage.setItem('lx5_cfg', JSON.stringify(d)),
-        getHistory: () => JSON.parse(localStorage.getItem('lx5_hist') || '[]'),
-        addHistory: (amt) => {
-            let h = Sys.getHistory();
-            h.unshift({ time: new Date().toLocaleTimeString(), amt: amt });
-            if(h.length > 50) h.pop();
-            localStorage.setItem('lx5_hist', JSON.stringify(h));
-        },
-        clearHistory: () => localStorage.removeItem('lx5_hist')
-    };
+/* ================= HỆ THỐNG CỐT LÕI ================= */
+const Core = {
+    cfgKey: 'lx11_cfg', histKey: 'lx11_hist',
+    getCfg: () => JSON.parse(localStorage.getItem(Core.cfgKey)) || [
+        {a:10000, w:100}, {a:20000, w:45}, {a:50000, w:15}, {a:100000, w:5}
+    ],
+    saveCfg: (d) => localStorage.setItem(Core.cfgKey, JSON.stringify(d)),
+    addHist: (v) => {
+        let h = JSON.parse(localStorage.getItem(Core.histKey)) || [];
+        h.push({t: new Date().toLocaleTimeString(), v: v});
+        localStorage.setItem(Core.histKey, JSON.stringify(h.slice(-50)));
+    }
+};
 
-    /* --- SYSTEM: AUDIO (Synth) --- */
-    const Audio = {
-        ctx: null,
-        init: () => Audio.ctx = new (window.AudioContext || window.webkitAudioContext)(),
-        play: (type, f, d) => {
-            if(!Audio.ctx) return;
-            let o = Audio.ctx.createOscillator(), g = Audio.ctx.createGain();
-            o.type=type; o.frequency.value=f;
-            g.gain.setValueAtTime(0.1, Audio.ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.01, Audio.ctx.currentTime+d);
-            o.connect(g); g.connect(Audio.ctx.destination);
-            o.start(); o.stop(Audio.ctx.currentTime+d);
-        }
-    };
+/* ================= ĐỘNG CƠ TRÒ CHƠI ================= */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
 
-    /* --- GAME ENGINE --- */
-    const cvs = document.getElementById('cvs');
-    const ctx = cvs.getContext('2d');
-    let W, H;
+const Game = {
+    active: false, score: 0, time: 60, items: [],
+    player: { x: 0, w: 90, h: 80 },
+    fever: { val: 0, active: false, timer: 0 },
+    buffs: { shield: false, frozen: 0, blurred: 0, lightning: 0, magnet: 0 },
 
-    const Game = {
-        active: false, score: 0, time: 60, items: [],
-        player: {x:0, w:80},
-        fever: { val: 0, active: false, timer: 0 },
+    start: () => {
+        W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight;
+        Game.player.x = W/2 - 45; Game.player.y = H - 120;
+        Game.active = true; Game.score = 0; Game.time = 60;
+        Game.items = []; Game.fever = { val:0, active:false, timer:0 };
+        Game.buffs = { shield: false, frozen: 0, blurred: 0, lightning: 0, magnet: 0 };
+        UI.show('gameScreen'); document.getElementById('menuScreen').style.display='none';
+        Game.loop(); Game.spawn(); Game.tick();
+    },
+
+    tick: () => {
+        let timer = setInterval(() => {
+            if(!Game.active) return clearInterval(timer);
+            Game.time--; document.getElementById('timeVal').innerText = Game.time;
+            
+            // Xử lý thời gian Buff/Debuff
+            if(Game.buffs.frozen > 0) {
+                Game.buffs.frozen--;
+                if(Game.buffs.frozen <= 0) document.getElementById('iceOverlay').style.opacity = 0;
+            }
+            if(Game.buffs.blurred > 0) {
+                Game.buffs.blurred--;
+                if(Game.buffs.blurred <= 0) document.body.classList.remove('blur-effect');
+            }
+            if(Game.buffs.lightning > 0) Game.buffs.lightning--;
+            if(Game.buffs.magnet > 0) Game.buffs.magnet--;
+
+            if(Game.fever.active) {
+                Game.fever.timer--;
+                if(Game.fever.timer <= 0) {
+                    Game.fever.active = false;
+                    document.getElementById('gameScreen').style.background = "#fffdfa";
+                }
+            }
+            UI.updateBuffs();
+            if(Game.time <= 0) Game.end();
+        }, 1000);
+    },
+
+    spawn: () => {
+        if(!Game.active) return;
+        let r = Math.random(), type = 'coin';
         
-        init: () => {
-            Audio.init();
-            document.getElementById('menuScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'block';
-            Game.resize();
-            Game.active = true; Game.score = 0; Game.time = 60; Game.items = [];
-            Game.fever = {val:0, active:false, timer:0};
+        // Tỷ lệ xuất hiện cân bằng
+        if(r < 0.15) type = 'bomb';
+        else if(r < 0.28) type = 'star';
+        else if(r < 0.31) type = 'ice';      // ❄️ 3%
+        else if(r < 0.34) type = 'lightning';// ⚡ 3%
+        else if(r < 0.37) type = 'fake';     // 🤡 3%
+        else if(r < 0.40) type = 'magnet';   // 🧲 3%
+        else if(r < 0.42) type = 'shield';   // 🛡️ 2%
+        else if(r < 0.44) type = 'time';     // ⌛ 2%
+
+        if(Game.fever.active) type = Math.random() < 0.3 ? 'star' : 'coin';
+
+        Game.items.push({
+            x: Math.random()*(W-60), y: -60, type,
+            // Độ khó tăng dần theo thời gian (Balance)
+            spd: (3.5 + Math.random()*3) * (1 + (60-Game.time)/120)
+        });
+        setTimeout(Game.spawn, Game.fever.active ? 150 : 600);
+    },
+
+    loop: () => {
+        if(!Game.active) return;
+        ctx.clearRect(0,0,W,H);
+        
+        // Hình ảnh nhân vật theo trạng thái
+        let pIcon = "🧺";
+        if(Game.fever.active) pIcon = "😎";
+        else if(Game.buffs.frozen > 0) pIcon = "🥶";
+        else if(Game.buffs.lightning > 0) pIcon = "😵‍💫";
+        ctx.font = "80px Arial";
+        ctx.fillText(pIcon, Game.player.x, Game.player.y + 70);
+
+        for(let i=Game.items.length-1; i>=0; i--) {
+            let it = Game.items[i];
             
-            Game.loop();
-            Game.spawn();
-            
-            // Timer loop
-            let tLoop = setInterval(() => {
-                if(!Game.active) { clearInterval(tLoop); return; }
-                Game.time--;
-                document.getElementById('uiTime').innerText = Game.time;
-                if(Game.time<=0) { clearInterval(tLoop); Game.end(); }
-                
-                // Fever Logic
-                if(Game.fever.active) {
-                    Game.fever.timer--;
-                    if(Game.fever.timer <= 0) {
-                        Game.fever.active = false;
-                        document.getElementById('gameScreen').classList.remove('fever-active');
-                    }
-                }
-            }, 1000);
-        },
-
-        resize: () => { W=cvs.width=window.innerWidth; H=cvs.height=window.innerHeight; Game.player.y=H-100; Game.player.x=W/2-40; },
-
-        spawn: () => {
-            if(!Game.active) return;
-            let type = Math.random() < 0.2 ? 'bomb' : 'coin';
-            if(Game.fever.active) type = 'coin'; // No bombs in fever
-            
-            Game.items.push({ x:Math.random()*(W-50), y:-50, type:type, spd: 4+Math.random()*4 });
-            let rate = Game.fever.active ? 150 : (Game.time < 30 ? 400 : 800); // Super fast in fever
-            setTimeout(Game.spawn, rate);
-        },
-
-        loop: () => {
-            if(!Game.active) return;
-            ctx.clearRect(0,0,W,H);
-            
-            // Player
-            ctx.font = "60px Arial";
-            ctx.fillText(Game.fever.active ? "😎" : "🧺", Game.player.x, Game.player.y+60);
-
-            // Items
-            for(let i=Game.items.length-1; i>=0; i--){
-                let it = Game.items[i];
-                
-                // Magnet Logic in Fever
-                if(Game.fever.active && it.type==='coin'){
-                    let dx = (Game.player.x+20)-it.x, dy = (Game.player.y+20)-it.y;
-                    it.x += dx*0.1; it.y += dy*0.1;
-                } else {
-                    it.y += it.spd;
-                }
-
-                ctx.font = "40px Arial";
-                ctx.fillText(it.type==='bomb'?"💣":"🧧", it.x, it.y);
-
-                // Collision
-                if(it.y > Game.player.y && it.y < Game.player.y+60 && it.x > Game.player.x-40 && it.x < Game.player.x+80){
-                    if(it.type==='bomb'){
-                        if(!Game.fever.active) {
-                            Game.score -= 5; Audio.play('sawtooth',100,0.5);
-                            Game.fever.val = 0; // Reset fever on bomb
-                        }
-                    } else {
-                        Game.score += 1; Audio.play('sine',880,0.1);
-                        // Add Fever
-                        if(!Game.fever.active) {
-                            Game.fever.val += 10;
-                            if(Game.fever.val >= 100) {
-                                Game.fever.active = true;
-                                Game.fever.val = 0; // --- FIX 1: RESET NĂNG LƯỢNG VỀ 0 ---
-                                Game.fever.timer = 5; 
-                                document.getElementById('gameScreen').classList.add('fever-active');
-                                Audio.play('square', 600, 0.5);
-                            }
-                        }
-                    }
-                    Game.items.splice(i,1);
-                }
+            // Logic Hút vật phẩm (Fever hoặc Magnet)
+            if((Game.fever.active || Game.buffs.magnet > 0) && !['bomb','ice','lightning','fake'].includes(it.type)) {
+                it.x += (Game.player.x + 40 - it.x) * 0.15;
+                it.y += (Game.player.y + 20 - it.y) * 0.15;
+            } else {
+                it.y += it.spd;
             }
-            
-            document.getElementById('uiScore').innerText = Game.score;
-            document.getElementById('feverBar').style.width = Game.fever.active ? "100%" : Game.fever.val + "%";
-            requestAnimationFrame(Game.loop);
-        },
 
-        end: () => {
-            Game.active = false;
-            document.getElementById('gameScreen').style.display = 'none';
-            document.getElementById('pickScreen').style.display = 'flex';
-            document.getElementById('finalScore').innerText = Game.score;
-            
-            // --- FIX 2a: Tăng cách tính điểm may mắn (1 điểm = 1%) ---
-            let luck = Math.min(100, Game.score); 
-            document.getElementById('luckPc').innerText = luck;
-            Picker.setup(luck);
+            ctx.font = "45px Arial";
+            ctx.fillText({coin:'🧧', bomb:'💣', star:'🌟', ice:'❄️', lightning:'⚡', fake:'🤡', shield:'🛡️', time:'⌛', magnet:'🧲'}[it.type], it.x, it.y);
+
+            // Va chạm
+            if(it.y > Game.player.y && it.y < Game.player.y + 80 && it.x > Game.player.x - 30 && it.x < Game.player.x + 80) {
+                Game.onCatch(it.type); Game.items.splice(i,1);
+            } else if(it.y > H) Game.items.splice(i,1);
         }
-    };
+        document.getElementById('scoreVal').innerText = Game.score;
+        document.getElementById('energyFill').style.width = Game.fever.active ? "100%" : Game.fever.val + "%";
+        requestAnimationFrame(Game.loop);
+    },
 
-    /* --- PICKER ENGINE (GACHA) --- */
-    const Picker = {
-        setup: (luck) => {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-            for(let i=0; i<9; i++){
-                let wrap = document.createElement('div');
-                wrap.className = 'bag-wrapper';
-                wrap.innerHTML = `
-                    <div class="bag-inner">
-                        <div class="bag-front"></div>
-                        <div class="bag-back">?</div>
-                    </div>
-                `;
-                wrap.onclick = () => Picker.open(wrap, luck);
-                grid.appendChild(wrap);
+    onCatch: (type) => {
+        if(type === 'bomb') {
+            if(Game.buffs.shield) { Game.buffs.shield = false; return; }
+            Game.score = Math.max(0, Game.score - 5); Game.fever.val = 0; // Trúng bom mất Fever
+            if(navigator.vibrate) navigator.vibrate(200);
+        } else if(type === 'coin') Game.score += 1;
+        else if(type === 'star') {
+            Game.score += 3;
+            if(!Game.fever.active) {
+                Game.fever.val += 20; // Hứng 5 sao để kích hoạt Fever
+                if(Game.fever.val >= 100) {
+                    Game.fever.active = true; Game.fever.val = 0; Game.fever.timer = 6;
+                    document.getElementById('gameScreen').style.background = "#e0f7fa";
+                }
             }
-            // --- SECRET KEY LISTENER ---
-            window.forcedOutcome = null; // Reset
-            window.onkeydown = (e) => {
-                if(e.key === '9') { window.forcedOutcome = 'MAX'; console.log('Secret: MAX'); }
-                if(e.key === '1') { window.forcedOutcome = 'MIN'; console.log('Secret: MIN'); }
-            };
-        },
+        }
+        else if(type === 'ice') { Game.buffs.frozen = 4; document.getElementById('iceOverlay').style.opacity = 0.7; }
+        else if(type === 'lightning') { Game.buffs.lightning = 5; document.body.classList.add('lightning-flash'); setTimeout(()=>document.body.classList.remove('lightning-flash'),100); }
+        else if(type === 'fake') { Game.score = Math.max(0, Game.score - 2); Game.buffs.blurred = 3; document.body.classList.add('blur-effect'); }
+        else if(type === 'shield') Game.buffs.shield = true;
+        else if(type === 'time') Game.time += 5;
+        else if(type === 'magnet') Game.buffs.magnet = 5;
+    },
 
-        open: (el, luck) => {
-            if(el.classList.contains('flipped')) return;
-            
-            // 1. Calculate Prize
-            let prize = Picker.calc(luck);
-            
-            // 2. Visual Flip
-            el.classList.add('flipped');
-            el.querySelector('.bag-back').innerText = (prize/1000) + 'k';
-            
-            // 3. Audio
-            Audio.play('triangle', 600, 0.1);
+    end: () => { 
+        Game.active = false; UI.hide('gameScreen'); UI.show('pickScreen'); 
+        document.body.classList.remove('blur-effect'); 
+        let luck = Math.min(100, Game.score);
+        document.getElementById('luckBonus').innerText = luck;
+        Gacha.init(luck);
+    }
+};
 
-            // 4. Reveal Big Card after delay
-            setTimeout(() => {
-                document.getElementById('revealScreen').style.display = 'flex';
-                document.getElementById('finalAmount').innerText = prize.toLocaleString() + ' VNĐ';
-                Sys.addHistory(prize);
-                Audio.play('square', 400, 0.1); 
-                setTimeout(()=>Audio.play('square', 600, 0.1), 100);
-                setTimeout(()=>Audio.play('square', 800, 0.4), 200);
-            }, 1000);
-        },
-
-        calc: (luck) => {
-            // Check Secret Keys First
-            const cfg = Sys.getCfg();
-            if(window.forcedOutcome === 'MAX') return Math.max(...cfg.map(c=>c.a));
-            if(window.forcedOutcome === 'MIN') return Math.min(...cfg.map(c=>c.a));
-
-            // Standard Luck Logic
-            let totalW = 0;
+/* ================= QUAY THƯỞNG GACHA ================= */
+const Gacha = {
+    init: (luck) => {
+        const grid = document.getElementById('cardGrid'); grid.innerHTML = '';
+        for(let i=0; i<9; i++) {
+            let c = document.createElement('div'); c.className = 'card';
+            c.innerHTML = `<div class="card-inner"><div class="card-f">🧧</div><div class="card-b">?</div></div>`;
+            c.onclick = () => Gacha.pick(c, luck); grid.appendChild(c);
+        }
+        // Phím tắt gian lận
+        window.onkeydown = (e) => { if(e.key === '9') window.f = 'MAX'; if(e.key === '1') window.f = 'MIN'; };
+    },
+    pick: (el, luck) => {
+        if(el.classList.contains('flipped')) return;
+        const cfg = Core.getCfg();
+        let prize = 10000;
+        
+        if(window.f === 'MAX') prize = Math.max(...cfg.map(c=>c.a));
+        else if(window.f === 'MIN') prize = Math.min(...cfg.map(c=>c.a));
+        else {
+            let total = 0;
+            // Thuật toán May mắn động: Điểm càng cao giải to càng dễ ra
             let pool = cfg.map(c => {
-                let w = c.w;
-                if(c.a >= 50000) {
-                    // --- FIX 2b: Boost mạnh tỷ lệ giải to (Tối đa nhân 4 lần) ---
-                    w = w * (1 + (luck * 3)/100); 
-                }
-                totalW += w;
-                return {...c, finalW: w};
+                let weight = c.w;
+                if(c.a >= 50000) weight *= (1 + luck/25); // Boost giải lớn
+                else weight *= (1 - luck/200); // Giảm nhẹ giải nhỏ
+                total += weight; return {a: c.a, fw: total};
             });
-            let r = Math.random() * totalW;
-            for(let p of pool) {
-                if(r < p.finalW) return p.a;
-                r -= p.finalW;
-            }
-            return cfg[0].a;
+            let r = Math.random() * total;
+            prize = pool.find(p => r <= p.fw).a;
         }
-    };
+        
+        el.classList.add('flipped'); el.querySelector('.card-b').innerText = (prize/1000) + 'k';
+        setTimeout(() => { 
+            UI.hide('pickScreen'); UI.show('revealScreen'); 
+            document.getElementById('prizeAmount').innerText = prize.toLocaleString() + ' VNĐ'; 
+            Core.addHist(prize);
+        }, 1000);
+    }
+};
 
-    /* --- ADMIN --- */
-    const Admin = {
-        login: () => {
-            if(document.getElementById('admUser').value === 'Admin' && document.getElementById('admPass').value === 'Quoc2007@'){
-                closeModal('loginModal');
-                Admin.loadPanel();
-                document.getElementById('panelModal').style.display = 'flex';
-            } else alert('Sai thông tin');
-        },
-        loadPanel: () => {
-            document.getElementById('cfgData').value = Sys.getCfg().map(c=>`${c.a}:${c.w}`).join('\n');
-            const h = Sys.getHistory();
-            const tbody = document.getElementById('historyBody');
-            tbody.innerHTML = h.map(x => `<tr><td>${x.time}</td><td>${parseInt(x.amt).toLocaleString()}</td></tr>`).join('');
-        },
-        saveCfg: () => {
-            try {
-                let d = document.getElementById('cfgData').value.split('\n').map(l=>{
-                    let [a,w] = l.split(':'); return {a:parseInt(a), w:parseInt(w)};
-                });
-                Sys.setCfg(d); alert('Đã lưu!');
-            } catch(e) { alert('Lỗi định dạng'); }
-        },
-        clearHistory: () => { Sys.clearHistory(); Admin.loadPanel(); }
-    };
-    
-    function openLogin(){document.getElementById('loginModal').style.display='flex'}
-    function closeModal(id){document.getElementById(id).style.display='none'}
-    
-    // Inputs
-    window.onresize = Game.resize;
-    cvs.addEventListener('mousemove',e=>Game.player.x=e.clientX-40);
-    cvs.addEventListener('touchmove',e=>{e.preventDefault();Game.player.x=e.touches[0].clientX-40},{passive:false});
+/* ================= QUẢN TRỊ & GIAO DIỆN ================= */
+const Admin = {
+    login: () => {
+        const u = document.getElementById('admU').value;
+        const p = document.getElementById('admP').value;
+        if(u === 'Admin' && p === 'Quoc2007@') {
+            UI.hide('loginModal'); Admin.open();
+        } else alert('Thông tin không chính xác!');
+    },
+    open: () => {
+        UI.show('adminPanel');
+        document.getElementById('cfgData').value = Core.getCfg().map(c => `${c.a}:${c.w}`).join('\n');
+        let h = JSON.parse(localStorage.getItem(Core.histKey)) || [];
+        let sum = h.reduce((s, x) => s + x.v, 0);
+        document.getElementById('stats').innerHTML = `Lượt chơi: ${h.length} | Tổng chi: <b>${sum.toLocaleString()}đ</b>`;
+    },
+    save: () => {
+        try {
+            let d = document.getElementById('cfgData').value.trim().split('\n').map(l => {
+                let [a, w] = l.split(':'); return {a: parseInt(a), w: parseInt(w)};
+            });
+            Core.saveCfg(d); alert('Lưu thành công!');
+        } catch(e) { alert('Sai định dạng cấu hình!'); }
+    },
+    clear: () => { if(confirm('Bạn muốn xóa toàn bộ lịch sử?')) { localStorage.removeItem(Core.histKey); Admin.open(); } }
+};
 
+const UI = {
+    show: (id) => document.getElementById(id).style.display = 'flex',
+    hide: (id) => document.getElementById(id).style.display = 'none',
+    updateBuffs: () => {
+        let h = "";
+        if(Game.buffs.shield) h += "🛡️ ";
+        if(Game.buffs.magnet > 0) h += "🧲 ";
+        if(Game.buffs.frozen > 0) h += "❄️ ";
+        if(Game.buffs.lightning > 0) h += "⚡ ";
+        if(Game.buffs.blurred > 0) h += "🤡 ";
+        document.getElementById('statusIcons').innerText = h;
+    }
+};
+
+// Điều khiển (Chuột & Cảm ứng)
+const handleMove = (x) => {
+    let moveX = x - 45;
+    if(Game.buffs.lightning > 0) moveX = W - x - 45; // ⚡ Đảo ngược điều khiển
+    let speed = Game.buffs.frozen > 0 ? 0.15 : 1; // ❄️ Chậm chạp
+    Game.player.x += (moveX - Game.player.x) * speed;
+};
+
+canvas.addEventListener('mousemove', e => handleMove(e.clientX));
+canvas.addEventListener('touchmove', e => { e.preventDefault(); handleMove(e.touches[0].clientX); }, {passive:false});
+window.onresize = () => { if(Game.active) Game.start(); };
 </script>
 </body>
 </html>
