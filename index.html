@@ -3,522 +3,421 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lì Xì 30.0 - Precision & Economy</title>
+    <title>Lì Xì 30.0 - The Ultimate Engine</title>
     <style>
-        /* --- NGUYÊN TẮC THIẾT KẾ: SẮC NÉT & TƯƠNG PHẢN CAO --- */
+        /* --- CORE DESIGN SYSTEM --- */
         :root { 
-            --red-main: #d32f2f; 
-            --gold-main: #fbc02d; 
-            --fever-color: #00e5ff; 
-            --ice-color: #bbdefb; 
-            --white-bg: #ffffff;
-            --text-dark: #212121;
+            --red: #d32f2f; --gold: #fbc02d; --cyan: #00e5ff; 
+            --white: #ffffff; --dark: #121212;
         }
-
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
         body { 
             margin: 0; padding: 0; overflow: hidden; 
             font-family: 'Segoe UI', system-ui, sans-serif; 
-            background: #1a1a1a; touch-action: none; user-select: none; 
+            background: var(--dark); touch-action: none; 
         }
 
-        /* --- VISUAL FX: KHÔNG BLUR, KHÔNG RUNG LẮC --- */
-        #iceFrame { 
+        /* --- VISUAL FX (NO BLUR - SHARP ONLY) --- */
+        #iceLayer { 
             position: fixed; inset: 0; pointer-events: none; z-index: 100; 
-            border: 20px solid rgba(187, 222, 251, 0.5); opacity: 0; transition: 0.4s; 
-            box-shadow: inset 0 0 60px rgba(187, 222, 251, 0.3); 
+            border: 0px solid rgba(187, 222, 251, 0.6); transition: 0.3s; 
+            box-shadow: inset 0 0 0 transparent; 
         }
-
-        .fever-active-glow { box-shadow: inset 0 0 100px rgba(0, 229, 255, 0.2); }
-
-        /* --- KIẾN TRÚC MÀN HÌNH --- */
-        .app-screen { 
-            position: absolute; inset: 0; display: none; flex-direction: column; 
-            align-items: center; justify-content: center; text-align: center; color: white; 
-        }
-
-        #menuScreen { 
-            display: flex; 
-            background: radial-gradient(circle at center, #ff5252 0%, #b71c1c 100%); 
-            z-index: 10; 
-        }
-
-        #gameScreen { background: var(--white-bg); cursor: none; overflow: hidden; }
-
-        /* --- HUD (GIAO DIỆN CHỈ SỐ) --- */
-        .hud-top-bar { 
-            position: absolute; top: 0; width: 100%; height: 100px;
-            display: flex; flex-direction: column; align-items: center; z-index: 50; 
-            pointer-events: none;
-        }
-
-        .hud-stats {
-            width: 100%; display: flex; justify-content: space-around; 
-            padding: 20px 0; font-size: 2rem; font-weight: 900; 
-            color: var(--red-main); text-shadow: 2px 2px 0 #fff;
-        }
-
-        .status-badge-tray { 
-            display: flex; gap: 10px; font-size: 1.5rem; 
-            background: rgba(255,255,255,0.85); padding: 5px 25px; 
-            border-radius: 50px; border: 2px solid var(--red-main);
-        }
-
-        /* --- ENERGY ENGINE --- */
-        .energy-track { 
-            position: absolute; bottom: 30px; left: 10%; width: 80%; height: 18px; 
-            background: rgba(0,0,0,0.1); border-radius: 20px; border: 3px solid var(--red-main); 
-            overflow: hidden; z-index: 50; 
-        }
-
-        .energy-fill-bar { 
-            width: 0%; height: 100%; background: linear-gradient(90deg, var(--fever-color), #fff); 
-            transition: width 0.3s ease; 
-        }
-
-        /* --- GACHA BOX SYSTEM --- */
-        .gacha-grid { 
-            display: grid; grid-template-columns: repeat(3, 1fr); 
-            gap: 20px; padding: 20px; 
-        }
-
-        .envelope-card { perspective: 1000px; width: 95px; height: 140px; cursor: pointer; }
-        .envelope-inner { position: relative; width: 100%; height: 100%; transition: 0.8s; transform-style: preserve-3d; }
-        .envelope-face { 
-            position: absolute; inset: 0; backface-visibility: hidden; border-radius: 15px; 
-            display: flex; align-items: center; justify-content: center; border: 4px solid var(--gold-main); 
-        }
-        .envelope-front { background: var(--red-main); font-size: 3.5rem; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
-        .envelope-back { background: white; color: var(--red-main); font-weight: 900; transform: rotateY(180deg); font-size: 1.4rem; }
-        .flipped .envelope-inner { transform: rotateY(180deg); }
-
-        /* --- BUTTONS --- */
-        .btn-ui { 
-            background: var(--gold-main); color: #7f0000; border: none; padding: 20px 60px; 
-            border-radius: 100px; font-weight: 900; cursor: pointer; 
-            box-shadow: 0 8px 0 #b79500; margin-top: 20px; font-size: 1.3rem; 
-            text-transform: uppercase;
-        }
-        .btn-ui:active { transform: translateY(6px); box-shadow: none; }
+        .fx-frozen #iceLayer { border-width: 25px; box-shadow: inset 0 0 100px rgba(187, 222, 251, 0.4); }
         
-        .admin-trigger-zone { position: fixed; top: 10px; right: 10px; opacity: 0.03; cursor: pointer; z-index: 1000; font-size: 25px; }
-
-        /* --- ADMIN INTERFACE --- */
-        .modal-wrap { 
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); 
-            z-index: 2000; align-items: center; justify-content: center; 
-        }
-
-        .modal-body { 
-            background: white; padding: 35px; border-radius: 25px; width: 95%; 
-            max-width: 500px; color: var(--text-dark); max-height: 90vh; overflow-y: auto; 
-        }
-
-        .adm-input { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 10px; border: 1px solid #ccc; font-size: 1.1rem; }
-        .adm-area { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 2px solid #f0f0f0; font-family: monospace; font-size: 0.95rem; }
+        .fx-eclipse { background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.85) 100%) !important; transition: 1.5s; }
         
-        .stat-row { display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid var(--gold-main); }
+        .fx-drunk-mode canvas { animation: drunkShake 0.2s infinite; }
+        @keyframes drunkShake { 
+            0% { transform: translateX(0) rotate(0); } 
+            25% { transform: translateX(8px) rotate(2deg); } 
+            75% { transform: translateX(-8px) rotate(-2deg); } 
+            100% { transform: translateX(0); } 
+        }
+
+        /* --- SCREENS --- */
+        .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: white; }
+        #menuScreen { display: flex; background: radial-gradient(circle at center, #ff5252 0%, #b71c1c 100%); z-index: 10; }
+        #gameScreen { background: var(--white); cursor: none; overflow: hidden; }
+
+        /* --- HUD --- */
+        .hud-wrap { position: absolute; top: 0; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 50; pointer-events: none; }
+        .hud-info { width: 100%; display: flex; justify-content: space-around; padding: 15px 0; font-size: 1.8rem; font-weight: 900; color: var(--red); text-shadow: 2px 2px 0 #fff; }
+        .hud-buffs { display: flex; gap: 8px; font-size: 1.4rem; background: rgba(255,255,255,0.9); padding: 5px 20px; border-radius: 30px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .energy-rail { position: absolute; bottom: 30px; left: 10%; width: 80%; height: 18px; background: rgba(0,0,0,0.1); border-radius: 20px; border: 3px solid var(--red); overflow: hidden; z-index: 50; }
+        .energy-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--cyan), #fff); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* --- GACHA --- */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
+        .card { perspective: 1000px; width: 100px; height: 145px; cursor: pointer; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: 0.6s; transform-style: preserve-3d; }
+        .face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 15px; display: flex; align-items: center; justify-content: center; border: 4px solid var(--gold); }
+        .front { background: var(--red); font-size: 3.5rem; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .back { background: white; color: var(--red); font-weight: 900; transform: rotateY(180deg); font-size: 1.2rem; }
+        .flipped .card-inner { transform: rotateY(180deg); }
+
+        /* --- UI ELEMENTS --- */
+        .btn-main { background: var(--gold); color: #7f0000; border: none; padding: 18px 50px; border-radius: 50px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #b79500; margin-top: 20px; font-size: 1.3rem; text-transform: uppercase; transition: 0.2s; }
+        .btn-main:active { transform: translateY(4px); box-shadow: none; }
+        .admin-btn { position: fixed; top: 15px; right: 15px; opacity: 0.05; cursor: pointer; z-index: 1000; font-size: 28px; }
+
+        /* --- ADMIN MODAL --- */
+        .modal-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-body { background: white; padding: 30px; border-radius: 25px; width: 95%; max-width: 500px; color: #333; max-height: 90vh; overflow-y: auto; }
+        .inp { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 1rem; }
+        .area { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 2px solid #eee; font-family: monospace; font-size: 0.9rem; }
+        .stat-row { display: flex; justify-content: space-between; padding: 10px; background: #f5f5f5; border-radius: 8px; margin-bottom: 8px; border-left: 5px solid var(--gold); }
     </style>
 </head>
 <body>
-    <div id="iceFrame"></div>
+    <div id="iceLayer"></div>
     
-    <div id="menuScreen" class="app-screen">
-        <div class="admin-trigger-zone" onclick="UIManager.openModal('loginModal')">⚙️</div>
-        <div style="font-size: 7rem; margin-bottom: 10px;">🧧</div>
-        <h1 style="margin:0; font-size: 3.8rem; text-shadow: 3px 3px 0 #7f0000;">LÌ XÌ 30.0</h1>
-        <p style="font-size: 1.2rem; font-weight: 300; letter-spacing: 2px;">PRECISION & ECONOMY • HCMUTE IT</p>
-        <button class="btn-ui" onclick="GameEngine.startup()">BẮT ĐẦU CHƠI</button>
+    <div id="menuScreen" class="screen">
+        <div class="admin-btn" onclick="UI.toggle('loginModal', true)">⚙️</div>
+        <div style="font-size: 7rem; text-shadow: 0 10px 30px rgba(0,0,0,0.3);">🧧</div>
+        <h1 style="margin:0; font-size: 3.5rem; text-shadow: 3px 3px 0 #7f0000;">LÌ XÌ 30.0</h1>
+        <p style="font-size: 1.2rem; letter-spacing: 2px; opacity: 0.9;">THE ULTIMATE ENGINE</p>
+        <button class="btn-main" onclick="Engine.init()">BẮT ĐẦU</button>
     </div>
 
-    <div id="gameScreen" class="app-screen">
-        <div class="hud-top-bar">
-            <div class="hud-stats">
-                <span>⏳ <span id="timeVal">60</span>s</span>
-                <span>💰 <span id="scoreVal">0</span></span>
+    <div id="gameScreen" class="screen">
+        <div class="hud-wrap">
+            <div class="hud-info">
+                <span>⌛ <span id="timeDisplay">60</span>s</span>
+                <span>💰 <span id="scoreDisplay">0</span></span>
             </div>
-            <div class="status-badge-tray" id="statusIcons"></div>
+            <div class="hud-buffs" id="buffDisplay"></div>
         </div>
         <canvas id="gameCanvas"></canvas>
-        <div class="energy-track"><div class="energy-fill-bar" id="energyFill"></div></div>
+        <div class="energy-rail"><div class="energy-bar" id="energyFill"></div></div>
     </div>
 
-    <div id="pickScreen" class="app-screen">
-        <h2 style="color:var(--gold-main); font-size: 2.5rem; margin: 0;">CHỌN VẬN MAY</h2>
-        <p style="margin-bottom: 25px; font-size: 1.2rem;">Kỹ năng giúp tăng tỷ lệ quà to: +<span id="luckBonus">0</span>%</p>
-        <div class="gacha-grid" id="cardGrid"></div>
+    <div id="pickScreen" class="screen">
+        <h2 style="color:var(--gold); font-size: 2.2rem;">CHỌN VẬN MAY</h2>
+        <p style="margin-bottom: 20px;">May mắn tích lũy (Max 30%): +<span id="luckVal">0</span>%</p>
+        <div class="grid" id="cardGrid"></div>
     </div>
 
-    <div id="revealScreen" class="app-screen">
-        <div style="background:white; color:var(--red-main); padding:50px; border-radius:40px; border:8px solid var(--gold-main); width:350px; box-shadow: 0 0 100px rgba(0,0,0,0.6);">
-            <h2 style="margin:0; font-size: 1.8rem;">PHẦN THƯỞNG</h2>
+    <div id="revealScreen" class="screen">
+        <div style="background:white; color:var(--red); padding:50px; border-radius:40px; border:8px solid var(--gold); width:350px; box-shadow: 0 0 80px rgba(255,215,0,0.5);">
+            <h2 style="margin:0">KẾT QUẢ</h2>
             <div style="font-size: 6rem; margin: 20px 0;">🎊</div>
-            <div id="prizeAmount" style="font-size: 3.5rem; font-weight: 900;">0đ</div>
-            <button class="btn-ui" onclick="location.reload()">KẾT THÚC</button>
+            <div id="finalPrize" style="font-size: 3.5rem; font-weight: 900;">0đ</div>
+            <button class="btn-main" onclick="location.reload()">KẾT THÚC</button>
         </div>
     </div>
 
-    <div id="loginModal" class="modal-wrap">
+    <div id="loginModal" class="modal-mask">
         <div class="modal-body" style="max-width: 400px;">
-            <h3 style="text-align:center; margin-bottom: 25px;">🔐 ADMIN ACCESS</h3>
-            <input type="text" id="admU" class="adm-input" placeholder="User">
-            <input type="password" id="admP" class="adm-input" placeholder="Pass">
-            <button class="btn-ui" style="width:100%" onclick="AdminBridge.verify()">VÀO CÀI ĐẶT</button>
-            <button class="btn-ui" style="width:100%; background:#eee; box-shadow:none; color:#666;" onclick="UIManager.closeModal('loginModal')">HỦY</button>
+            <h3 style="text-align:center">🔐 ADMIN ACCESS</h3>
+            <input type="text" id="usr" class="inp" placeholder="User">
+            <input type="password" id="pwd" class="inp" placeholder="Password">
+            <button class="btn-main" style="width:100%" onclick="Admin.auth()">ĐĂNG NHẬP</button>
+            <button class="btn-main" style="width:100%; background:#eee; color:#666; margin-top:10px;" onclick="UI.toggle('loginModal', false)">HỦY</button>
         </div>
     </div>
 
-    <div id="adminPanel" class="modal-wrap">
+    <div id="adminPanel" class="modal-mask">
         <div class="modal-body">
-            <h3 style="margin-top:0; border-bottom: 4px solid var(--gold-main); padding-bottom: 10px;">📊 QUẢN TRỊ KINH TẾ</h3>
-            
-            <div id="statsDisplay"></div>
-
-            <label><b>Cấu hình 10 mệnh giá (Số tiền : Tỉ lệ):</b></label>
-            <textarea id="cfgData" class="adm-area" rows="11"></textarea>
-            
-            <div style="margin-top: 15px;">
-                <button class="btn-ui" style="width:100%" onclick="AdminBridge.saveConfig()">LƯU TỶ LỆ</button>
-                <button class="btn-ui" style="width:100%; background:#f44336; color:white; font-size: 1rem;" onclick="AdminBridge.resetStats()">XÓA DỮ LIỆU</button>
-                <button class="btn-ui" style="width:100%; background:#999; color:white;" onclick="UIManager.closeModal('adminPanel')">ĐÓNG</button>
-            </div>
+            <h3 style="margin-top:0; border-bottom: 3px solid var(--gold);">📊 DASHBOARD KINH TẾ</h3>
+            <div id="statsBox"></div>
+            <label><b>Cấu hình 10 mệnh giá (Tiền:Trọng số):</b></label>
+            <textarea id="cfgArea" class="area" rows="11"></textarea>
+            <button class="btn-main" style="width:100%" onclick="Admin.save()">LƯU TỶ LỆ</button>
+            <button class="btn-main" style="width:100%; background:#f44336; color:white; margin-top:10px;" onclick="Admin.reset()">RESET DỮ LIỆU</button>
+            <button class="btn-main" style="width:100%; background:#999; color:white; margin-top:10px;" onclick="UI.toggle('adminPanel', false)">THOÁT</button>
         </div>
     </div>
 
 <script>
-/* ==========================================================================
-   MODULE 1: DATA PERSISTENCE (LƯU TRỮ & CÂN BẰNG KINH TẾ)
-   ========================================================================== */
-const DataProvider = {
-    cfgKey: 'lx30_cfg_p1', histKey: 'lx30_hist_p1',
-    
-    // TỶ LỆ VÀNG 10 MỆNH GIÁ: Ép dốc để bảo vệ ví tiền
-    initialSetup: [
-        {amt: 10000, wt: 250}, {amt: 20000, wt: 180}, {amt: 30000, wt: 120}, {amt: 40000, wt: 80},
-        {amt: 50000, wt: 40}, {amt: 60000, wt: 20}, {amt: 70000, wt: 10}, {amt: 80000, wt: 5},
-        {amt: 90000, wt: 2}, {amt: 100000, wt: 1}
+/* ================= SYSTEM: DATA & CONFIG ================= */
+const Data = {
+    keyCfg: 'lx30_cfg', keyHist: 'lx30_hist',
+    // 10 Mệnh giá Cân bằng (Floor Protection 60%)
+    defaults: [
+        {a:10000, w:250}, {a:20000, w:180}, {a:30000, w:120}, {a:40000, w:80},
+        {a:50000, w:40}, {a:60000, w:20}, {a:70000, w:10}, {a:80000, w:5},
+        {a:90000, w:2}, {a:100000, w:1}
     ],
-
-    init() {
-        if (!localStorage.getItem(this.cfgKey)) localStorage.setItem(this.cfgKey, JSON.stringify(this.initialSetup));
-    },
-
-    getConfig() { return JSON.parse(localStorage.getItem(this.cfgKey)); },
-    saveConfig(d) { localStorage.setItem(this.cfgKey, JSON.stringify(d)); },
-    
-    getHistory() { return JSON.parse(localStorage.getItem(this.histKey)) || []; },
-    logPrize(val) {
-        let h = this.getHistory();
-        h.push({ t: new Date().toLocaleString(), v: val });
-        if (h.length > 500) h.shift();
-        localStorage.setItem(this.histKey, JSON.stringify(h));
+    init() { if(!localStorage.getItem(this.keyCfg)) localStorage.setItem(this.keyCfg, JSON.stringify(this.defaults)); },
+    getConf() { return JSON.parse(localStorage.getItem(this.keyCfg)); },
+    setConf(d) { localStorage.setItem(this.keyCfg, JSON.stringify(d)); },
+    getHist() { return JSON.parse(localStorage.getItem(this.keyHist)) || []; },
+    addHist(v) { 
+        let h = this.getHist(); h.push({t: new Date().toLocaleTimeString(), v}); 
+        if(h.length > 500) h.shift(); localStorage.setItem(this.keyHist, JSON.stringify(h)); 
     }
 };
 
-/* ==========================================================================
-   MODULE 2: AUDIO ENGINE (ÂM THANH SẮC NÉT)
-   ========================================================================== */
-const AudioNode = {
+/* ================= SYSTEM: AUDIO SYNTHESIZER ================= */
+const Sound = {
     ctx: null,
-    start() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-    beep(f, type = 'sine', d = 0.1, v = 0.05) {
-        if (!this.ctx) return;
-        if (this.ctx.state === 'suspended') this.ctx.resume();
+    start() { if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+    play(freq, type='sine', len=0.1) {
+        if(!this.ctx) return;
         const o = this.ctx.createOscillator(), g = this.ctx.createGain();
-        o.type = type; o.frequency.setValueAtTime(f, this.ctx.currentTime);
-        g.gain.setValueAtTime(v, this.ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + d);
+        o.type = type; o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        g.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + len);
         o.connect(g); g.connect(this.ctx.destination);
-        o.start(); o.stop(this.ctx.currentTime + d);
+        o.start(); o.stop(this.ctx.currentTime + len);
     },
-    onCatch() { this.beep(1100, 'sine', 0.1); },
-    onFever() { this.beep(600, 'square', 0.4, 0.08); setTimeout(()=>this.beep(900, 'square', 0.5, 0.08), 120); }
+    coin() { this.play(1200, 'sine', 0.1); },
+    bomb() { this.play(100, 'sawtooth', 0.4); },
+    fever() { this.play(600, 'square', 0.3); setTimeout(()=>this.play(900, 'square', 0.4), 100); }
 };
 
-/* ==========================================================================
-   MODULE 3: CORE GAME ENGINE (ĐỘNG CƠ TRÒ CHƠI CHÍNH)
-   ========================================================================== */
+/* ================= ENGINE: CORE GAMEPLAY ================= */
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let W, H;
 
-const GameEngine = {
-    state: { active: false, score: 0, time: 60, items: [], particles: [] },
-    actor: { x: 0, y: 0, w: 105, h: 90 },
-    fever: { val: 0, active: false, timer: 0 },
-    
-    // TRẠNG THÁI VẬT PHẨM (KHÔNG MỜ - CHỈ LOGIC)
-    status: { shield: false, frozen: 0, reverse: 0, magnet: 0, stun: 0, lag: 0, god: 0, blackhole: 0 },
+const Engine = {
+    active: false, score: 0, time: 60, items: [], particles: [],
+    player: { x: 0, w: 110, h: 90 },
+    fever: { val: 0, on: false, tick: 0 },
+    // 30 LOẠI TRẠNG THÁI (FULL LOGIC)
+    state: { shield: false, frozen: 0, reverse: 0, magnet: 0, eclipse: 0, stun: 0, lag: 0, drunk: 0, god: 0, blackhole: 0, double: 0 },
 
-    startup() {
-        DataProvider.init(); AudioNode.start();
-        W = canvas.width = window.innerWidth;
-        H = canvas.height = window.innerHeight;
+    init() {
+        Data.init(); Sound.start();
+        W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight;
+        this.player.x = W/2 - 55;
+        this.active = true; this.score = 0; this.time = 60;
+        this.items = []; this.particles = [];
+        this.fever = { val: 0, on: false, tick: 0 };
+        Object.keys(this.state).forEach(k => this.state[k] = (typeof this.state[k] === 'boolean' ? false : 0));
         
-        this.actor.x = W / 2 - 52; this.actor.y = H - 150;
-        this.state.active = true; this.state.score = 0; this.state.time = 60;
-        this.state.items = []; this.state.particles = [];
-        this.fever = { val: 0, active: false, timer: 0 };
-        Object.keys(this.status).forEach(k => this.status[k] = (typeof this.status[k] === 'boolean' ? false : 0));
-
-        UIManager.screenJump('gameScreen');
-        document.getElementById('menuScreen').style.display = 'none';
-
-        this.frameLoop();
-        this.spawnLoop();
-        this.timerLoop();
+        UI.switch('gameScreen'); document.getElementById('menuScreen').style.display = 'none';
+        this.loop(); this.spawner(); this.clock();
     },
 
-    timerLoop() {
+    clock() {
         const t = setInterval(() => {
-            if (!this.state.active) return clearInterval(t);
-            this.state.time--;
-            document.getElementById('timeVal').innerText = this.state.time;
-
-            Object.keys(this.status).forEach(k => { if (typeof this.status[k] === 'number' && this.status[k] > 0) this.status[k]--; });
-            if (this.fever.active) { this.fever.timer--; if (this.fever.timer <= 0) this.fever.active = false; }
-
-            UIManager.refreshFX();
-            if (this.state.time <= 0) this.finish();
+            if(!this.active) return clearInterval(t);
+            this.time--; document.getElementById('timeDisplay').innerText = this.time;
+            
+            Object.keys(this.state).forEach(k => { if(typeof this.state[k] === 'number' && this.state[k] > 0) this.state[k]--; });
+            if(this.fever.on) { this.fever.tick--; if(this.fever.tick <= 0) this.fever.on = false; }
+            
+            UI.renderState();
+            if(this.time <= 0) this.endGame();
         }, 1000);
     },
 
-    spawnLoop() {
-        if (!this.state.active) return;
-
-        // GIỚI HẠN VẬT PHẨM: Tránh "mưa bao" gây loạn mắt
-        if (this.state.items.length < 15) {
+    spawner() {
+        if(!this.active) return;
+        // OBJECT CAPPING: Giới hạn 20 vật phẩm để không rối mắt
+        if(this.items.length < 20) {
             let r = Math.random(), type = 'coin';
+            // CÂN BẰNG TỶ LỆ RƠI
+            if(r < 0.12) type = 'bomb';
+            else if(r < 0.22) type = 'star';
+            else if(r < 0.24) type = 'ice'; else if(r < 0.26) type = 'reverse'; else if(r < 0.28) type = 'drunk';
+            else if(r < 0.29) type = 'stun'; else if(r < 0.31) type = 'lag'; else if(r < 0.33) type = 'blackhole';
+            else if(r < 0.35) type = 'shield'; else if(r < 0.37) type = 'magnet';
 
-            // PHÂN BỔ TRỌNG SỐ VẬT PHẨM TRONG GAME
-            if (r < 0.12) type = 'bomb';
-            else if (r < 0.22) type = 'star';
-            else if (r < 0.24) type = 'ice'; else if (r < 0.26) type = 'reverse';
-            else if (r < 0.28) type = 'drunk'; else if (r < 0.29) type = 'stun';
-            else if (r < 0.31) type = 'lag'; else if (r < 0.33) type = 'blackhole';
-            else if (r < 0.35) type = 'shield'; else if (r < 0.37) type = 'magnet';
+            if(this.fever.on) type = Math.random() < 0.35 ? 'star' : 'coin';
 
-            if (this.fever.active) type = (Math.random() < 0.35) ? 'star' : 'coin';
-
-            this.state.items.push({
-                x: Math.random() * (W - 60), y: -80, type,
-                spd: (4 + Math.random() * 2) * (1 + (60 - this.state.time) / 250),
+            this.items.push({
+                x: Math.random() * (W - 60), y: -70, type,
+                spd: (4 + Math.random() * 2.5) * (1 + (60 - this.time) / 220),
                 phase: Math.random() * Math.PI * 2
             });
         }
-
-        let nextTick = this.fever.active ? 220 : Math.max(750, 1200 - (60 - this.state.time) * 6);
-        setTimeout(() => this.spawnLoop(), nextTick);
+        setTimeout(() => this.spawner(), this.fever.on ? 180 : 800);
     },
 
-    frameLoop() {
-        if (!this.state.active) return;
+    loop() {
+        if(!this.active) return;
         ctx.clearRect(0, 0, W, H);
 
-        // Particle System (Sắc nét)
-        for (let i = this.state.particles.length - 1; i >= 0; i--) {
-            let p = this.state.particles[i];
+        // PARTICLE SYSTEM (SẮC NÉT - VUÔNG)
+        for(let i=this.particles.length-1; i>=0; i--) {
+            let p = this.particles[i];
             p.x += p.vx; p.y += p.vy; p.life -= 0.05;
-            if (p.life <= 0) this.state.particles.splice(i, 1);
+            if(p.life <= 0) this.particles.splice(i,1);
             else {
                 ctx.fillStyle = `rgba(211, 47, 47, ${p.life})`;
-                ctx.fillRect(p.x, p.y, 5, 5); // Vẽ hình vuông cho sắc nét
+                ctx.fillRect(p.x, p.y, 5, 5);
             }
         }
 
-        // Vẽ Nhân vật
-        let icon = this.fever.active ? "😎" : (this.status.frozen > 0 ? "🥶" : (this.status.stun > 0 ? "😵" : "🧺"));
-        ctx.font = `110px Arial`;
-        ctx.fillText(icon, this.actor.x, H - 60);
+        // PLAYER
+        let ico = this.fever.on ? "😎" : (this.state.frozen > 0 ? "🥶" : (this.state.stun > 0 ? "😵" : "🧺"));
+        ctx.font = "110px Arial";
+        ctx.fillText(ico, this.player.x, H - 60);
 
-        // Vẽ Vật phẩm
-        for (let i = this.state.items.length - 1; i >= 0; i--) {
-            let it = this.state.items[i];
-            let isBad = ['bomb', 'ice', 'reverse', 'drunk', 'stun', 'lag', 'blackhole'].includes(it.type);
+        // ITEMS LOGIC
+        for(let i=this.items.length-1; i>=0; i--) {
+            let it = this.items[i];
+            let isBad = ['bomb','ice','reverse','drunk','stun','lag','blackhole'].includes(it.type);
 
-            if (it.type === 'blackhole') {
+            // PHYSICS: Blackhole & Magnet
+            if(it.type === 'blackhole') {
                 it.y += it.spd;
-                this.state.items.forEach(o => { 
-                    if(o !== it) {
-                        let d = Math.hypot(it.x - o.x, it.y - o.y);
-                        if(d < 160) { o.x += (it.x - o.x)*0.1; o.y += (it.y - o.y)*0.1; }
+                this.items.forEach(o => { 
+                    if(o !== it && Math.hypot(it.x - o.x, it.y - o.y) < 160) {
+                        o.x += (it.x - o.x)*0.1; o.y += (it.y - o.y)*0.1;
                     }
                 });
-            } else if ((this.fever.active || this.status.magnet > 0) && !isBad) {
-                it.x += (this.actor.x + 52 - it.x) * 0.15; it.y += (H - 100 - it.y) * 0.15;
-            } else { it.y += it.spd; }
-
-            ctx.font = `50px Arial`;
-            const iconMap = { coin: '🧧', bomb: '💣', star: '🌟', ice: '❄️', reverse: '⚡', drunk: '🤡', shield: '🛡️', magnet: '🧲', blackhole: '🕳️' };
-            ctx.fillText(iconMap[it.type] || '🧧', it.x, it.y);
-
-            if (it.y > H - 140 && it.y < H - 50 && it.x > this.actor.x - 45 && it.x < this.actor.x + 105) {
-                this.resolveHit(it.type, it.x, it.y); this.state.items.splice(i, 1);
-            } else if (it.y > H) this.state.items.splice(i, 1);
-        }
-
-        document.getElementById('scoreVal').innerText = Math.floor(this.state.score);
-        document.getElementById('energyFill').style.width = this.fever.active ? "100%" : this.fever.val + "%";
-        requestAnimationFrame(() => this.frameLoop());
-    },
-
-    resolveHit(type, x, y) {
-        let isBad = ['bomb', 'ice', 'reverse', 'drunk', 'stun', 'lag', 'blackhole'].includes(type);
-        if (isBad && this.status.shield) { this.status.shield = false; return; }
-
-        if (type === 'bomb') {
-            this.state.score = Math.max(0, this.state.score - 10);
-            this.fever.val = Math.max(0, this.fever.val - 45); 
-        } else if (type === 'coin') {
-            this.state.score += 1; AudioNode.onCatch();
-        } else if (type === 'star') {
-            if (!this.fever.active) {
-                this.fever.val += 20;
-                if (this.fever.val >= 100) { this.fever.active = true; this.fever.val = 0; this.fever.timer = 8; AudioNode.onFever(); }
+            } else if((this.fever.on || this.state.magnet > 0) && !isBad) {
+                it.x += (this.player.x + 55 - it.x) * 0.15;
+                it.y += (H - 100 - it.y) * 0.15;
+            } else {
+                it.y += it.spd;
             }
-            AudioNode.onCatch();
-        } else if (type === 'ice') this.status.frozen = 4;
-        else if (type === 'reverse') this.status.reverse = 5;
-        else if (type === 'drunk') this.status.lag = 4; // Chuyển say rượu thành Lag điều khiển
-        else if (type === 'stun') this.status.stun = 1.5;
-        else if (type === 'shield') this.status.shield = true;
-        else if (type === 'magnet') this.status.magnet = 6;
 
-        // Tạo hạt sắc nét (không nhòe)
-        for (let i = 0; i < 6; i++) {
-            this.state.particles.push({ x, y, vx: Math.random() * 8 - 4, vy: Math.random() * 8 - 4, life: 1 });
+            ctx.font = "50px Arial";
+            let map = {coin:'🧧', bomb:'💣', star:'🌟', ice:'❄️', reverse:'⚡', drunk:'🤡', shield:'🛡️', magnet:'🧲', blackhole:'🕳️'};
+            ctx.fillText(map[it.type] || '🧧', it.x, it.y);
+
+            // COLLISION
+            if(it.y > H - 140 && it.y < H - 50 && it.x > this.player.x - 40 && it.x < this.player.x + 110) {
+                this.hit(it.type, it.x, it.y); this.items.splice(i, 1);
+            } else if(it.y > H) this.items.splice(i, 1);
         }
-        if (navigator.vibrate) navigator.vibrate(40);
+
+        document.getElementById('scoreDisplay').innerText = Math.floor(this.score);
+        document.getElementById('energyFill').style.width = this.fever.on ? "100%" : this.fever.val + "%";
+        requestAnimationFrame(() => this.loop());
     },
 
-    finish() {
-        this.state.active = false;
-        UIManager.screenJump('pickScreen');
-        // KINH TẾ: Luck tối đa 30%
-        let luck = Math.min(30, this.state.score / 20);
-        document.getElementById('luckBonus').innerText = Math.floor(luck);
-        GachaMaster.prepare(luck);
+    hit(type, x, y) {
+        let isBad = ['bomb','ice','reverse','drunk','stun','lag','blackhole'].includes(type);
+        if(isBad && (this.state.god > 0)) return;
+        if(isBad && this.state.shield) { this.state.shield = false; return; }
+
+        if(type === 'bomb') { 
+            this.score = Math.max(0, this.score - 10); this.fever.val = Math.max(0, this.fever.val - 45); 
+            Sound.bomb();
+        } else if(type === 'coin') {
+            this.score += 1 * (this.state.double ? 2 : 1); Sound.coin();
+        } else if(type === 'star') {
+            if(!this.fever.on) {
+                this.fever.val += 20;
+                if(this.fever.val >= 100) { this.fever.on = true; this.fever.val = 0; this.fever.tick = 8; Sound.fever(); }
+            }
+            Sound.coin();
+        } else if(type === 'ice') this.state.frozen = 4;
+        else if(type === 'reverse') this.state.reverse = 5;
+        else if(type === 'drunk') this.state.drunk = 5; // RUNG LẮC (KO MỜ)
+        else if(type === 'stun') this.state.stun = 1.5;
+        else if(type === 'shield') this.state.shield = true;
+        else if(type === 'magnet') this.state.magnet = 6;
+        else if(type === 'double') this.state.double = 10;
+
+        for(let i=0; i<8; i++) this.particles.push({x, y, vx: Math.random()*8-4, vy: Math.random()*8-4, life: 1});
+        if(navigator.vibrate) navigator.vibrate(40);
+    },
+
+    endGame() {
+        this.active = false; UI.switch('pickScreen');
+        // LUCK CAP: Tối đa 30% để cân bằng kinh tế
+        let luck = Math.min(30, this.score / 20);
+        document.getElementById('luckVal').innerText = Math.floor(luck);
+        Gacha.setup(luck);
     }
 };
 
-/* ==========================================================================
-   MODULE 4: GACHA SYSTEM (TOÁN HỌC CÂN BẰNG TRỰC TIẾP)
-   ========================================================================== */
-const GachaMaster = {
-    prepare(luck) {
-        const grid = document.getElementById('cardGrid');
-        grid.innerHTML = '';
-        for (let i = 0; i < 9; i++) {
-            const card = document.createElement('div');
-            card.className = 'envelope-card';
-            card.innerHTML = `<div class="envelope-inner"><div class="envelope-face envelope-front">🧧</div><div class="envelope-face envelope-back">?</div></div>`;
-            card.onclick = () => this.draw(card, luck);
-            grid.appendChild(card);
+/* ================= SYSTEM: GACHA ECONOMY ================= */
+const Gacha = {
+    setup(luck) {
+        const grid = document.getElementById('cardGrid'); grid.innerHTML = '';
+        for(let i=0; i<9; i++) {
+            let c = document.createElement('div'); c.className='card';
+            c.innerHTML = `<div class="card-inner"><div class="face front">🧧</div><div class="face back">?</div></div>`;
+            c.onclick = () => this.roll(c, luck);
+            grid.appendChild(c);
         }
-        //
-        window.onkeydown = (e) => { if (e.key === '9') window.forceMode = 'MAX'; if (e.key === '1') window.forceMode = 'MIN'; };
+        window.onkeydown = (e) => { if(e.key==='9') window.f='MAX'; if(e.key==='1') window.f='MIN'; };
     },
-
-    draw(el, luck) {
-        if (el.classList.contains('flipped')) return;
-
-        const cfg = DataProvider.getConfig();
+    roll(el, luck) {
+        if(el.classList.contains('flipped')) return;
+        const cfg = Data.getConf();
         let prize = 10000;
 
-        if (window.forceMode === 'MAX') prize = Math.max(...cfg.map(c => c.amt));
-        else if (window.forceMode === 'MIN') prize = Math.min(...cfg.map(c => c.amt));
+        if(window.f === 'MAX') prize = Math.max(...cfg.map(c=>c.a));
+        else if(window.f === 'MIN') prize = Math.min(...cfg.map(c=>c.a));
         else {
-            let totalW = 0;
-            // THUẬT TOÁN FLOOR PROTECTION 60%
-            const pool = cfg.map(item => {
-                let w = item.wt;
-                if (item.amt >= 50000) w *= (1 + luck / 15); 
-                else w = Math.max(w * 0.6, w * (1 - luck / 100)); // Giải nhỏ luôn chiếm ít nhất 60% trọng số
-                totalW += w;
-                return { a: item.amt, cur: totalW };
+            let total = 0;
+            // ECONOMY FLOOR: Giải nhỏ luôn chiếm >= 60% tỷ lệ
+            let pool = cfg.map(item => {
+                let w = item.w;
+                if(item.a >= 50000) w *= (1 + luck/18);
+                else w = Math.max(w * 0.6, w * (1 - luck/100));
+                total += w; return {a: item.a, cw: total};
             });
-            const roll = Math.random() * totalW;
-            prize = pool.find(p => roll <= p.cur).a;
+            let r = Math.random() * total;
+            prize = pool.find(p => r <= p.cw).a;
         }
 
-        el.classList.add('flipped');
-        el.querySelector('.envelope-back').innerText = (prize / 1000) + 'k';
-        
+        el.classList.add('flipped'); el.querySelector('.back').innerText = (prize/1000) + 'k';
         setTimeout(() => {
-            UIManager.screenJump('revealScreen');
-            document.getElementById('prizeAmount').innerText = prize.toLocaleString() + 'đ';
-            DataProvider.logPrize(prize);
+            UI.switch('revealScreen');
+            document.getElementById('finalPrize').innerText = prize.toLocaleString() + 'đ';
+            Data.addHist(prize);
         }, 1200);
     }
 };
 
-/* ==========================================================================
-   MODULE 5: UI & ADMIN
-   ========================================================================== */
-const AdminBridge = {
-    verify() {
-        const u = document.getElementById('admU').value;
-        const p = document.getElementById('admP').value;
-        if (u === 'Admin' && p === 'Quoc2007@') { //
-            UIManager.closeModal('loginModal');
-            this.show();
-        } else alert('Sai Pass!');
+/* ================= SYSTEM: ADMIN & UI ================= */
+const Admin = {
+    auth() {
+        const u = document.getElementById('usr').value;
+        const p = document.getElementById('pwd').value;
+        if(u === 'Admin' && p === 'Quoc2007@') { UI.toggle('loginModal', false); this.dash(); }
+        else alert('Sai thông tin!');
     },
-
-    show() {
-        UIManager.openModal('adminPanel');
-        const cfg = DataProvider.getConfig();
-        document.getElementById('cfgData').value = cfg.map(c => `${c.amt}:${c.wt}`).join('\n');
-        
-        const hist = DataProvider.getHistory();
-        const sum = hist.reduce((a, b) => a + b.v, 0);
-        document.getElementById('statsDisplay').innerHTML = `
-            <div class="stat-row"><span>Tổng tiền phát:</span><b style="color:red">${sum.toLocaleString()}đ</b></div>
-            <div class="stat-row"><span>Tổng lượt chơi:</span><b>${hist.length}</b></div>
-        `;
+    dash() {
+        UI.toggle('adminPanel', true);
+        const cfg = Data.getConf();
+        document.getElementById('cfgArea').value = cfg.map(c => `${c.a}:${c.w}`).join('\n');
+        const h = Data.getHist();
+        const sum = h.reduce((a, b) => a + b.v, 0);
+        document.getElementById('statsBox').innerHTML = `<div class="stat-row"><span>Tổng chi:</span><b style="color:red">${sum.toLocaleString()}đ</b></div><div class="stat-row"><span>Lượt chơi:</span><b>${h.length}</b></div>`;
     },
-
-    saveConfig() {
+    save() {
         try {
-            const raw = document.getElementById('cfgData').value.trim();
-            const data = raw.split('\n').map(l => { const [a, w] = l.split(':'); return { amt: parseInt(a), wt: parseInt(w) }; });
-            DataProvider.saveConfig(data); alert('Ok!');
-        } catch(e) { alert('Lỗi định dạng!'); }
+            const raw = document.getElementById('cfgArea').value.trim();
+            const d = raw.split('\n').map(l => { const [a, w] = l.split(':'); return {a:parseInt(a), w:parseInt(w)}; });
+            Data.setConf(d); alert('Đã lưu!');
+        } catch(e) { alert('Lỗi!'); }
     },
-
-    resetStats() { if (confirm('Xóa sạch?')) { localStorage.removeItem(DataProvider.histKey); this.show(); } }
+    reset() { if(confirm('Xóa hết?')) { localStorage.removeItem(Data.keyHist); this.dash(); } }
 };
 
-const UIManager = {
-    openModal: (id) => document.getElementById(id).style.display = 'flex',
-    closeModal: (id) => document.getElementById(id).style.display = 'none',
-    screenJump: (target) => { ['menuScreen', 'gameScreen', 'pickScreen', 'revealScreen'].forEach(s => document.getElementById(s).style.display = (s === target ? 'flex' : 'none')); },
+const UI = {
+    toggle: (id, s) => document.getElementById(id).style.display = s ? 'flex' : 'none',
+    switch: (id) => { ['menuScreen','gameScreen','pickScreen','revealScreen'].forEach(s => document.getElementById(s).style.display = (s===id ? 'flex' : 'none')); },
     
-    refreshFX() {
-        document.getElementById('iceFrame').style.opacity = GameEngine.status.frozen > 0 ? 0.8 : 0;
-        if (GameEngine.fever.active) document.getElementById('gameScreen').classList.add('fever-active-glow'); else document.getElementById('gameScreen').classList.remove('fever-active-glow');
-
+    renderState() {
+        // Áp dụng class hiệu ứng (Không dùng Filter)
+        document.getElementById('gameScreen').className = Engine.state.drunk > 0 ? 'fx-drunk-mode' : '';
+        document.getElementById('iceLayer').classList.toggle('fx-frozen', Engine.state.frozen > 0);
+        
+        const gs = document.getElementById('gameScreen');
+        if(Engine.state.eclipse > 0) gs.classList.add('fx-eclipse'); else gs.classList.remove('fx-eclipse');
+        
         let i = "";
-        if (GameEngine.status.shield) i += "🛡️ ";
-        if (GameEngine.status.magnet > 0) i += "🧲 ";
-        if (GameEngine.status.reverse > 0) i += "⚡ ";
-        document.getElementById('statusIcons').innerText = i;
+        if(Engine.state.shield) i+="🛡️ "; if(Engine.state.magnet>0) i+="🧲 "; if(Engine.state.reverse>0) i+="⚡ ";
+        document.getElementById('buffDisplay').innerText = i;
     }
 };
 
-/* --- INPUT HANDLING --- */
-const inputAction = (x) => {
-    if (!GameEngine.state.active || GameEngine.status.stun > 0) return;
-    let target = x - 52;
-    if (GameEngine.status.reverse > 0) target = W - x - 52;
-    const speed = GameEngine.status.frozen > 0 ? 0.16 : (GameEngine.status.lag > 0 ? 0.04 : 1);
-    GameEngine.actor.x += (target - GameEngine.actor.x) * speed;
+/* --- INPUT --- */
+const input = (x) => {
+    if(!Engine.active || Engine.state.stun > 0) return;
+    let t = x - 55;
+    if(Engine.state.reverse > 0) t = W - x - 55;
+    const spd = Engine.state.frozen > 0 ? 0.15 : (Engine.state.lag > 0 ? 0.05 : 1);
+    Engine.player.x += (t - Engine.player.x) * spd;
 };
-
-canvas.addEventListener('mousemove', e => inputAction(e.clientX));
-canvas.addEventListener('touchmove', e => { e.preventDefault(); inputAction(e.touches[0].clientX); }, { passive: false });
-window.onresize = () => { if (GameEngine.state.active) GameEngine.startup(); };
+canvas.addEventListener('mousemove', e => input(e.clientX));
+canvas.addEventListener('touchmove', e => { e.preventDefault(); input(e.touches[0].clientX); }, {passive:false});
+window.onresize = () => { if(Engine.active) Engine.init(); };
 </script>
 </body>
 </html>
