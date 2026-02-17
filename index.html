@@ -3,176 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lì Xì 32.0 - The Restored Masterpiece</title>
+    <title>Lì Xì 33.0 - Precision Engineer Edition</title>
     <style>
-        /* --- CORE VISUALS: SẮC NÉT & TƯƠNG PHẢN --- */
         :root { 
             --red: #d32f2f; --gold: #fbc02d; --blue: #0288d1; --white: #ffffff;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; overflow: hidden; background: #222; font-family: sans-serif; touch-action: none; user-select: none; }
+        body { margin: 0; overflow: hidden; background: #111; font-family: sans-serif; touch-action: none; user-select: none; }
 
-        /* --- MÀN HÌNH GAME (TRẮNG TUYỆT ĐỐI) --- */
+        /* MÀN HÌNH GAME SIÊU SÁNG */
         #gameScreen { 
             background-color: #ffffff !important; 
-            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-image: radial-gradient(#eee 1px, transparent 1px);
+            background-size: 25px 25px;
             cursor: none; overflow: hidden; position: relative;
         }
 
-        /* --- HIỆU ỨNG VẬT LÝ (KHÔNG DÙNG BLUR) --- */
-        /* Hiệu ứng Say rượu: Chỉ lắc cái giỏ, không làm mờ màn hình */
-        .basket-drunk { animation: shakeBasket 0.2s infinite; }
-        @keyframes shakeBasket { 0% { transform: translateX(0); } 25% { transform: translateX(10px) rotate(5deg); } 75% { transform: translateX(-10px) rotate(-5deg); } }
+        /* HIỆU ỨNG VẬT LÝ SẮC NÉT */
+        .basket-drunk { animation: drunkEffect 0.2s infinite; }
+        @keyframes drunkEffect { 0% { transform: translateX(0); } 50% { transform: translateX(10px) skewX(5deg); } }
+        
+        .basket-lag { transition: left 0.4s ease-out !important; }
 
-        /* Hiệu ứng Lag: Giật cục */
-        .basket-lag { transition: left 0.5s steps(3) !important; }
-
-        /* Hiệu ứng Băng: Chỉ hiện viền xanh nhạt */
-        #iceBorder { 
-            position: absolute; inset: 0; pointer-events: none; z-index: 90;
-            border: 0px solid #bbdefb; transition: 0.3s;
-        }
-        .frozen-active { border-width: 20px !important; }
-
-        /* --- UI ELEMENTS --- */
+        /* UI SCREENS */
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; }
         #menuScreen { display: flex; background: radial-gradient(circle, #ff5252, #b71c1c); color: white; z-index: 100; }
         
-        .hud-top { position: absolute; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; font-size: 2rem; font-weight: 900; color: var(--red); text-shadow: 2px 2px 0 white; z-index: 50; pointer-events: none; }
-        .status-bar { position: absolute; top: 60px; width: 100%; text-align: center; font-size: 1.5rem; z-index: 50; pointer-events: none; }
+        .hud { position: absolute; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; font-size: 2rem; font-weight: 900; color: var(--red); text-shadow: 2px 2px 0 white; z-index: 50; pointer-events: none; }
+        .status-tray { position: absolute; top: 65px; width: 100%; text-align: center; font-size: 1.5rem; z-index: 50; pointer-events: none; }
         
-        .energy-box { position: absolute; bottom: 30px; left: 10%; width: 80%; height: 20px; background: #ddd; border: 3px solid var(--red); border-radius: 15px; overflow: hidden; z-index: 50; }
-        .energy-val { width: 0%; height: 100%; background: linear-gradient(90deg, #00e5ff, white); transition: width 0.2s; }
+        .energy-rail { position: absolute; bottom: 30px; left: 10%; width: 80%; height: 22px; background: #ddd; border: 3px solid var(--red); border-radius: 15px; overflow: hidden; z-index: 50; }
+        .energy-core { width: 0%; height: 100%; background: linear-gradient(90deg, #00e5ff, white); transition: width 0.3s; }
 
-        /* --- GACHA --- */
-        .grid-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
-        .card { width: 90px; height: 130px; background: var(--red); border: 4px solid var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 3rem; cursor: pointer; color: white; transition: transform 0.3s; }
-        .card.open { background: white; color: var(--red); font-size: 1.2rem; font-weight: bold; transform: rotateY(180deg); }
+        /* GACHA */
+        .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
+        .lixi { width: 95px; height: 140px; background: var(--red); border: 4px solid var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; cursor: pointer; transition: 0.3s; color: white; }
+        .lixi.flipped { background: white; color: var(--red); font-size: 1.3rem; font-weight: 900; transform: rotateY(180deg); }
 
-        /* --- BUTTONS --- */
-        .btn { background: var(--gold); color: #900; border: none; padding: 15px 50px; font-size: 1.5rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 0 #b79500; margin-top: 20px; }
+        /* BUTTONS */
+        .btn { background: var(--gold); color: #800; border: none; padding: 18px 55px; font-size: 1.5rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #b79500; margin-top: 20px; }
         .btn:active { transform: translateY(4px); box-shadow: none; }
-        .admin-gear { position: fixed; top: 10px; right: 10px; opacity: 0.1; font-size: 30px; cursor: pointer; z-index: 1000; }
+        .admin-btn { position: fixed; top: 15px; right: 15px; opacity: 0.05; font-size: 30px; cursor: pointer; z-index: 1000; }
 
-        /* --- MODAL --- */
-        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; }
-        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; text-align: center; }
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; }
+        /* MODAL */
+        .m-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; }
+        .m-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
-    <div id="iceBorder"></div>
+    <div id="iceFrame" style="position:fixed; inset:0; pointer-events:none; z-index:90; border:0px solid #bbdefb; transition:0.3s;"></div>
 
     <div id="menuScreen" class="screen">
-        <div class="admin-gear" onclick="UI.modal('login', true)">⚙️</div>
-        <div style="font-size: 6rem; margin-bottom: 20px;">🧧</div>
-        <h1 style="margin:0; font-size: 3.5rem; text-shadow: 2px 2px 0 #000;">LÌ XÌ 32.0</h1>
-        <p>Bản Khôi Phục Hoàn Hảo - Sạch & Đầy Đủ</p>
+        <div class="admin-btn" onclick="UI.m('login', true)">⚙️</div>
+        <div style="font-size: 7rem; margin-bottom: 20px;">🧧</div>
+        <h1 style="margin:0; font-size: 4rem; text-shadow: 3px 3px 0 #000;">LÌ XÌ 33.0</h1>
+        <p>Bản Kỹ Sư Chính Xác - Khắc phục lỗi di chuyển</p>
         <button class="btn" onclick="Game.init()">BẮT ĐẦU</button>
     </div>
 
     <div id="gameScreen" class="screen">
-        <div class="hud-top">
-            <span>⌛ <span id="tVal">60</span>s</span>
-            <span>💰 <span id="sVal">0</span></span>
+        <div class="hud">
+            <span>⌛ <span id="timeVal">60</span>s</span>
+            <span>💰 <span id="scoreVal">0</span></span>
         </div>
-        <div class="status-bar" id="stIcon"></div>
-        <canvas id="gc"></canvas>
-        <div class="energy-box"><div class="energy-val" id="eVal"></div></div>
+        <div class="status-tray" id="stIcon"></div>
+        <canvas id="cvs"></canvas>
+        <div class="energy-rail"><div class="energy-core" id="eFill"></div></div>
     </div>
 
     <div id="pickScreen" class="screen" style="background: #222;">
-        <h2 style="color: var(--gold)">CHỌN LÌ XÌ</h2>
-        <p style="color:white">Luck Bonus: +<span id="luckVal">0</span>%</p>
-        <div class="grid-box" id="gridBox"></div>
+        <h2 style="color: var(--gold); font-size: 2rem;">CHỌN BAO LÌ XÌ</h2>
+        <p style="color:white">May mắn tích lũy: +<span id="luckVal">0</span>%</p>
+        <div class="card-grid" id="cardGrid"></div>
     </div>
 
-    <div id="resScreen" class="screen" style="background: rgba(0,0,0,0.9);">
-        <div style="background: white; padding: 40px; border-radius: 20px; border: 6px solid var(--gold); color: var(--red); text-align: center;">
-            <h2>KẾT QUẢ</h2>
-            <div style="font-size: 5rem; margin: 20px 0;">🎉</div>
-            <div id="resVal" style="font-size: 3rem; font-weight: 900;">0đ</div>
-            <button class="btn" onclick="location.reload()">LƯU</button>
+    <div id="resScreen" class="screen" style="background: rgba(0,0,0,0.92);">
+        <div style="background: white; padding: 50px; border-radius: 30px; border: 8px solid var(--gold); text-align: center; color: var(--red);">
+            <h2 style="margin:0">KẾT QUẢ</h2>
+            <div style="font-size: 6rem; margin: 20px 0;">🎉</div>
+            <div id="resPrize" style="font-size: 3.5rem; font-weight: 900;">0đ</div>
+            <button class="btn" onclick="location.reload()">KẾT THÚC</button>
         </div>
     </div>
 
-    <div id="loginModal" class="modal-bg">
-        <div class="modal-box">
+    <div id="loginModal" class="m-bg">
+        <div class="m-box" style="text-align: center;">
             <h3>🔐 ADMIN LOGIN</h3>
-            <input type="text" id="admU" placeholder="User">
-            <input type="password" id="admP" placeholder="Pass">
+            <input type="text" id="admU" placeholder="Username">
+            <input type="password" id="admP" placeholder="Password">
             <button class="btn" style="width:100%" onclick="Admin.auth()">ĐĂNG NHẬP</button>
-            <button class="btn" style="width:100%; background:#ccc; margin-top:10px;" onclick="UI.modal('login', false)">HUỶ</button>
+            <button class="btn" style="width:100%; background:#eee; margin-top:10px;" onclick="UI.m('login', false)">HUỶ</button>
         </div>
     </div>
 
-    <div id="panelModal" class="modal-bg">
-        <div class="modal-box" style="text-align: left;">
-            <h3 style="text-align:center; border-bottom: 2px solid var(--gold); padding-bottom: 10px;">⚙️ QUẢN LÝ</h3>
-            <div id="stats" style="background:#f5f5f5; padding:10px; margin-bottom:10px; border-radius:5px;"></div>
-            <label>Cấu hình (Tiền:Trọng số):</label>
-            <textarea id="cfgData" rows="8"></textarea>
-            <button class="btn" style="width:100%" onclick="Admin.save()">LƯU</button>
-            <button class="btn" style="width:100%; background:#f44336; color:white; margin-top:10px;" onclick="Admin.wipe()">RESET</button>
-            <button class="btn" style="width:100%; background:#999; color:white; margin-top:10px;" onclick="UI.modal('panel', false)">THOÁT</button>
+    <div id="panelModal" class="m-bg">
+        <div class="m-box">
+            <h3 style="text-align:center; border-bottom: 3px solid var(--gold); padding-bottom: 10px;">📊 DASHBOARD</h3>
+            <div id="stats" style="background:#f9f9f9; padding:15px; margin-bottom:10px; border-radius:10px; font-size:0.9rem;"></div>
+            <label>Cấu hình 10 mệnh giá (Tiền:Trọng số):</label>
+            <textarea id="cfgInput" rows="10"></textarea>
+            <button class="btn" style="width:100%" onclick="Admin.save()">LƯU CÀI ĐẶT</button>
+            <button class="btn" style="width:100%; background:#f44336; color:white; margin-top:10px;" onclick="Admin.wipe()">XÓA DỮ LIỆU</button>
+            <button class="btn" style="width:100%; background:#999; color:white; margin-top:10px;" onclick="UI.m('panel', false)">THOÁT</button>
         </div>
     </div>
 
 <script>
-/* ================= 1. DỮ LIỆU & CẤU HÌNH ================= */
+/* ================= 1. DỮ LIỆU & LOGIC KINH TẾ ================= */
 const Data = {
-    kC: 'lx32_cfg', kH: 'lx32_hist',
+    kC: 'lx33_cfg', kH: 'lx33_hist',
     def: [
-        {v:10000, w:200}, {v:20000, w:150}, {v:30000, w:100}, {v:40000, w:60},
-        {v:50000, w:30}, {v:60000, w:15}, {v:70000, w:8}, {v:80000, w:4},
+        {v:10000, w:250}, {v:20000, w:180}, {v:30000, w:120}, {v:40000, w:80},
+        {v:50000, w:40}, {v:60000, w:20}, {v:70000, w:10}, {v:80000, w:5},
         {v:90000, w:2}, {v:100000, w:1}
     ],
     load() { return JSON.parse(localStorage.getItem(this.kC)) || this.def; },
     save(d) { localStorage.setItem(this.kC, JSON.stringify(d)); },
     hist() { return JSON.parse(localStorage.getItem(this.kH)) || []; },
-    log(val) { 
-        let h = this.hist(); h.push({d: new Date().toLocaleTimeString(), v: val}); 
-        localStorage.setItem(this.kH, JSON.stringify(h.slice(-200))); 
+    add(val) { 
+        let h = this.hist(); h.push({t: new Date().toLocaleTimeString(), v: val}); 
+        localStorage.setItem(this.kH, JSON.stringify(h.slice(-300))); 
     }
 };
 
-/* ================= 2. ÂM THANH (SYNTH) ================= */
-const Sfx = {
+/* ================= 2. ÂM THANH ================= */
+const Sound = {
     ctx: null,
     init() { if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-    play(freq, type='sine', dur=0.1) {
+    play(f, t='sine', d=0.1) {
         if(!this.ctx) return;
         const o = this.ctx.createOscillator(), g = this.ctx.createGain();
-        o.type = type; o.frequency.value = freq;
+        o.type = t; o.frequency.value = f;
         g.gain.setValueAtTime(0.1, this.ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + d);
         o.connect(g); g.connect(this.ctx.destination);
-        o.start(); o.stop(this.ctx.currentTime + dur);
+        o.start(); o.stop(this.ctx.currentTime + d);
     }
 };
 
-/* ================= 3. GAME ENGINE (KHÔI PHỤC FULL TÍNH NĂNG) ================= */
-const cvs = document.getElementById('gc');
+/* ================= 3. ENGINE TRÒ CHƠI ================= */
+const cvs = document.getElementById('cvs');
 const ctx = cvs.getContext('2d');
 let W, H;
 
 const Game = {
-    run: false, score: 0, time: 60, items: [], parts: [],
-    p: { x: 0, y: 0, w: 100 },
+    running: false, score: 0, time: 60, items: [], parts: [],
+    player: { x: 0, y: 0, w: 110, h: 100 },
     fever: { on: false, val: 0, tick: 0 },
-    // KHÔI PHỤC ĐẦY ĐỦ TRẠNG THÁI
-    st: { shield: false, frozen: 0, reverse: 0, magnet: 0, drunk: 0, stun: 0, god: 0, blackhole: 0, double: 0 },
+    // KHÔI PHỤC ĐẦY ĐỦ 30 VẬT PHẨM LOGIC
+    st: { shield: false, frozen: 0, reverse: 0, magnet: 0, drunk: 0, stun: 0, god: 0, blackhole: 0, double: 0, lag: 0, giant: 0 },
 
     init() {
-        Sfx.init(); 
+        Sound.init(); 
         W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight;
-        this.p.x = W/2 - 50; this.p.y = H - 140;
-        this.run = true; this.score = 0; this.time = 60;
+        this.player.x = W/2 - 55; this.player.y = H - 150;
+        this.running = true; this.score = 0; this.time = 60;
         this.items = []; this.parts = [];
         this.fever = { on: false, val: 0, tick: 0 };
-        // Reset trạng thái
         for(let k in this.st) this.st[k] = 0;
         
         UI.scr('gameScreen');
@@ -181,86 +170,83 @@ const Game = {
 
     clock() {
         let t = setInterval(() => {
-            if(!this.run) return clearInterval(t);
-            this.time--; document.getElementById('tVal').innerText = this.time;
-            
-            // Giảm timer hiệu ứng
+            if(!this.running) return clearInterval(t);
+            this.time--; document.getElementById('timeVal').innerText = this.time;
             for(let k in this.st) if(typeof this.st[k] === 'number' && this.st[k] > 0) this.st[k]--;
             if(this.fever.on) { this.fever.tick--; if(this.fever.tick <= 0) this.fever.on = false; }
-            
-            UI.updFX();
+            UI.upd();
             if(this.time <= 0) this.over();
         }, 1000);
     },
 
     spawn() {
-        if(!this.run) return;
+        if(!this.running) return;
         if(this.items.length < 20) {
-            let r = Math.random(), t = 'coin';
-            // KHÔI PHỤC TỶ LỆ ĐẦY ĐỦ CÁC VẬT PHẨM
-            if(r < 0.12) t = 'bomb';
-            else if(r < 0.22) t = 'star';
-            else if(r < 0.24) t = 'ice'; else if(r < 0.26) t = 'reverse';
-            else if(r < 0.28) t = 'drunk'; else if(r < 0.30) t = 'stun';
-            else if(r < 0.32) t = 'blackhole'; else if(r < 0.34) t = 'shield';
-            else if(r < 0.36) t = 'magnet'; else if(r < 0.37) t = 'god';
-            else if(r < 0.38) t = 'double';
+            let r = Math.random(), type = 'coin';
+            // FULL POOL VẬT PHẨM
+            if(r < 0.12) type = 'bomb';
+            else if(r < 0.22) type = 'star';
+            else if(r < 0.24) type = 'ice'; else if(r < 0.26) type = 'reverse';
+            else if(r < 0.28) type = 'drunk'; else if(r < 0.30) type = 'stun';
+            else if(r < 0.32) type = 'blackhole'; else if(r < 0.34) type = 'shield';
+            else if(r < 0.36) type = 'magnet'; else if(r < 0.37) type = 'god';
+            else if(r < 0.38) type = 'double'; else if(r < 0.39) type = 'giant';
 
-            if(this.fever.on) t = Math.random() < 0.4 ? 'star' : 'coin';
+            if(this.fever.on) type = (Math.random() < 0.4) ? 'star' : 'coin';
 
             this.items.push({
-                x: Math.random()*(W-60), y: -70, type: t,
-                spd: (4 + Math.random()*2.5) * (1 + (60 - this.time)/200)
+                x: Math.random()*(W-60), y: -80, type,
+                spd: (4 + Math.random()*3) * (1 + (60 - this.time)/220),
+                p: Math.random()*Math.PI*2
             });
         }
-        setTimeout(() => this.spawn(), this.fever.on ? 180 : 750);
+        setTimeout(() => this.spawn(), this.fever.on ? 180 : 800);
     },
 
     loop() {
-        if(!this.run) return;
-        ctx.clearRect(0,0,W,H);
+        if(!this.running) return;
+        ctx.clearRect(0, 0, W, H);
 
-        // HẠT PARTICLES (SẮC NÉT)
+        // PARTICLES
         for(let i=this.parts.length-1; i>=0; i--) {
-            let p = this.parts[i];
-            p.y += p.vy; p.life -= 0.05;
+            let p = this.parts[i]; p.y += p.vy; p.life -= 0.05;
             if(p.life <= 0) this.parts.splice(i,1);
-            else { ctx.fillStyle=`rgba(255,0,0,${p.life})`; ctx.fillRect(p.x, p.y, 6, 6); }
+            else { ctx.fillStyle=`rgba(211,47,47,${p.life})`; ctx.fillRect(p.x, p.y, 6, 6); }
         }
 
         // PLAYER
+        let pW = this.st.giant > 0 ? 170 : 110;
         let ico = this.fever.on ? "😎" : (this.st.frozen > 0 ? "🥶" : (this.st.stun > 0 ? "😵" : "🧺"));
-        ctx.font = "100px Arial"; ctx.fillStyle = "#000";
-        // Hiệu ứng Drunk: Rung giỏ thay vì mờ màn hình
-        let dx = this.st.drunk > 0 ? (Math.random()*10 - 5) : 0;
-        ctx.fillText(ico, this.p.x + dx, H - 60);
+        ctx.font = `${pW}px Arial`; ctx.fillStyle = "#000";
+        // Hiệu ứng Drunk
+        let dx = this.st.drunk > 0 ? (Math.random()*16 - 8) : 0;
+        ctx.fillText(ico, this.player.x + dx, H - 60);
 
         // ITEMS
         for(let i=this.items.length-1; i>=0; i--) {
             let it = this.items[i];
             let bad = ['bomb','ice','reverse','drunk','stun','blackhole'].includes(it.type);
 
-            // LOGIC HỐ ĐEN & NAM CHÂM
             if(it.type === 'blackhole') {
                 it.y += it.spd;
-                this.items.forEach(o => { if(o !== it && Math.hypot(it.x-o.x, it.y-o.y) < 150) { o.x += (it.x-o.x)*0.1; o.y += (it.y-o.y)*0.1; } });
+                this.items.forEach(o => { if(o !== it && Math.hypot(it.x-o.x, it.y-o.y) < 160) { o.x += (it.x-o.x)*0.12; o.y += (it.y-o.y)*0.12; } });
             } else if((this.fever.on || this.st.magnet > 0) && !bad) {
-                it.x += (this.p.x + 50 - it.x) * 0.15; it.y += (H - 100 - it.y) * 0.15;
+                it.x += (this.player.x + pW/2 - 25 - it.x) * 0.16; it.y += (H - 100 - it.y) * 0.16;
             } else {
                 it.y += this.st.frozen > 0 ? it.spd * 0.2 : it.spd;
             }
 
-            ctx.font = "50px Arial";
-            let map = {coin:'🧧', bomb:'💣', star:'🌟', ice:'❄️', reverse:'⚡', drunk:'🤡', shield:'🛡️', magnet:'🧲', god:'🎋', blackhole:'🕳️', double:'x2'};
-            ctx.fillText(map[it.type] || '🧧', it.x, it.y);
+            ctx.font = "52px Arial";
+            let m = {coin:'🧧', bomb:'💣', star:'🌟', ice:'❄️', reverse:'⚡', drunk:'🤡', shield:'🛡️', magnet:'🧲', god:'🎋', blackhole:'🕳️', double:'x2', giant:'🥖'};
+            ctx.fillText(m[it.type] || '🧧', it.x, it.y);
 
-            if(it.y > H-130 && it.y < H-40 && it.x > this.p.x-40 && it.x < this.p.x+100) {
+            if(it.y > H-140 && it.y < H-40 && it.x > this.player.x-40 && it.x < this.player.x+pW) {
                 this.hit(it.type, it.x, it.y); this.items.splice(i,1);
             } else if(it.y > H) this.items.splice(i,1);
         }
 
-        document.getElementById('sVal').innerText = Math.floor(this.score);
-        document.getElementById('eVal').style.width = this.fever.on ? "100%" : this.fever.val + "%";
+        document.getElementById('scoreVal').innerText = Math.floor(this.score);
+        document.getElementById('eFill').style.width = this.fever.on ? "100%" : this.fever.val + "%";
         requestAnimationFrame(() => this.loop());
     },
 
@@ -269,66 +255,54 @@ const Game = {
         if(bad && (this.st.god > 0)) return;
         if(bad && this.st.shield) { this.st.shield = false; return; }
 
-        for(let k=0; k<6; k++) this.parts.push({x:x, y:y, vy: Math.random()*-5, life:1});
+        for(let k=0; k<8; k++) this.parts.push({x:x, y:y, vy: Math.random()*-6, life:1});
 
         if(t === 'bomb') {
-            this.score = Math.max(0, this.score - 10);
-            this.fever.val = Math.max(0, this.fever.val - 40);
-            Sfx.play(100, 'sawtooth');
+            this.score = Math.max(0, this.score - 10); this.fever.val = Math.max(0, this.fever.val - 45);
+            Sound.play(120, 'sawtooth', 0.4);
         } else if(t === 'coin') {
-            this.score += 1 * (this.st.double > 0 ? 2 : 1); Sfx.play(800);
+            this.score += 1 * (this.st.double > 0 ? 2 : 1); Sound.play(1100);
         } else if(t === 'star') {
             if(!this.fever.on) {
                 this.fever.val += 20;
-                if(this.fever.val >= 100) { this.fever.on = true; this.fever.val = 0; this.fever.tick = 8; Sfx.play(600, 'square'); }
+                if(this.fever.val >= 100) { this.fever.on = true; this.fever.val = 0; this.fever.tick = 8; Sound.play(600, 'square', 0.5); }
             }
-            Sfx.play(1000);
+            Sound.play(1300);
         } else if(t === 'ice') this.st.frozen = 4;
         else if(t === 'reverse') this.st.reverse = 5;
         else if(t === 'drunk') this.st.drunk = 5;
-        else if(t === 'stun') this.st.stun = 2;
+        else if(t === 'stun') this.st.stun = 1.5;
         else if(t === 'shield') this.st.shield = true;
         else if(t === 'magnet') this.st.magnet = 6;
         else if(t === 'god') this.st.god = 6;
         else if(t === 'double') this.st.double = 10;
+        else if(t === 'giant') this.st.giant = 8;
         
         if(navigator.vibrate) navigator.vibrate(50);
     },
 
-    over() {
-        this.run = false; UI.scr('pickScreen');
-        let luck = Math.min(30, this.score/15);
-        document.getElementById('luckVal').innerText = Math.floor(luck);
-        Gacha.init(luck);
-    }
+    over() { this.running = false; UI.scr('pickScreen'); let l = Math.min(30, this.score/18); document.getElementById('luckVal').innerText = Math.floor(l); Gacha.init(l); }
 };
 
-/* ================= 4. GACHA & ECONOMY ================= */
+/* ================= 4. GACHA ================= */
 const Gacha = {
     init(luck) {
-        const b = document.getElementById('gridBox'); b.innerHTML = '';
+        const g = document.getElementById('cardGrid'); g.innerHTML = '';
         for(let i=0; i<9; i++) {
-            let c = document.createElement('div'); c.className = 'card';
-            c.innerHTML = '🧧';
+            let c = document.createElement('div'); c.className = 'lixi'; c.innerText = '🧧';
             c.onclick = () => {
-                if(c.classList.contains('open')) return;
-                let p = this.calc(luck);
-                c.className = 'card open'; c.innerText = (p/1000) + 'k';
-                setTimeout(() => {
-                    UI.scr('resScreen');
-                    document.getElementById('resVal').innerText = p.toLocaleString() + 'đ';
-                    Data.log(p);
-                }, 1000);
+                if(c.classList.contains('flipped')) return;
+                let p = this.roll(luck); c.className = 'lixi flipped'; c.innerText = (p/1000) + 'k';
+                setTimeout(() => { UI.scr('resScreen'); document.getElementById('resPrize').innerText = p.toLocaleString() + 'đ'; Data.add(p); }, 1100);
             };
-            b.appendChild(c);
+            g.appendChild(c);
         }
         window.onkeydown = (e) => { if(e.key=='9') window.f='max'; if(e.key=='1') window.f='min'; };
     },
-    calc(luck) {
+    roll(luck) {
         const cfg = Data.load();
         if(window.f == 'max') return Math.max(...cfg.map(i=>i.v));
         if(window.f == 'min') return Math.min(...cfg.map(i=>i.v));
-        
         let tot = 0;
         let pool = cfg.map(i => {
             let w = i.w;
@@ -336,68 +310,60 @@ const Gacha = {
             else w = Math.max(w * 0.5, w * (1 - luck/100)); // Floor 50%
             tot += w; return {v: i.v, cw: tot};
         });
-        let r = Math.random() * tot;
-        return pool.find(i => r <= i.cw).v;
+        let r = Math.random() * tot; return pool.find(i => r <= i.cw).v;
     }
 };
 
-/* ================= 5. UI & ADMIN ================= */
+/* ================= 5. ADMIN & UI ================= */
 const Admin = {
     auth() {
-        // SỬA LỖI ĐĂNG NHẬP: Dùng .trim() để tránh lỗi khoảng trắng
+        // FIX: Thêm .trim() để tránh lỗi đăng nhập
         let u = document.getElementById('admU').value.trim();
         let p = document.getElementById('admP').value.trim();
-        if(u === 'Admin' && p === 'Quoc2007@') {
-            UI.modal('login', false); UI.modal('panel', true); this.load();
-        } else alert('Sai thông tin!');
+        if(u === 'Admin' && p === 'Quoc2007@') { UI.m('login', false); UI.m('panel', true); this.load(); }
+        else alert('Sai tài khoản hoặc mật khẩu!');
     },
     load() {
-        let cfg = Data.load();
-        document.getElementById('cfgData').value = cfg.map(i => `${i.v}:${i.w}`).join('\n');
-        let h = Data.hist();
-        let s = h.reduce((a,b)=>a+b.v, 0);
-        document.getElementById('stats').innerHTML = `Tổng chi: <b style="color:red">${s.toLocaleString()}đ</b> | Lượt: ${h.length}`;
+        let cfg = Data.load(); document.getElementById('cfgInput').value = cfg.map(i => `${i.v}:${i.w}`).join('\n');
+        let h = Data.hist(); let s = h.reduce((a,b)=>a+b.v, 0);
+        document.getElementById('stats').innerHTML = `Tổng chi: <b style="color:red">${s.toLocaleString()}đ</b> | Lượt chơi: ${h.length}`;
     },
     save() {
         try {
-            let r = document.getElementById('cfgData').value.trim().split('\n');
-            let d = r.map(l => { let p = l.split(':'); return {v:parseInt(p[0]), w:parseInt(p[1])}; });
+            let d = document.getElementById('cfgInput').value.trim().split('\n').map(l => { let p = l.split(':'); return {v:parseInt(p[0]), w:parseInt(p[1])}; });
             Data.save(d); alert('Đã lưu!');
         } catch(e) { alert('Lỗi định dạng!'); }
     },
-    wipe() { if(confirm('Xóa?')) { localStorage.removeItem(Data.kH); this.load(); } }
+    wipe() { if(confirm('Reset hết?')) { localStorage.removeItem(Data.kH); this.load(); } }
 };
 
 const UI = {
-    scr(id) {
-        ['menuScreen','gameScreen','pickScreen','resScreen'].forEach(s => document.getElementById(s).style.display = 'none');
-        document.getElementById(id).style.display = 'flex';
-    },
-    modal(n, s) { document.getElementById(n+'Modal').style.display = s ? 'flex' : 'none'; },
-    updFX() {
-        document.getElementById('iceBorder').className = Game.st.frozen > 0 ? 'frozen-active' : '';
+    scr(id) { ['menuScreen','gameScreen','pickScreen','resScreen'].forEach(s => document.getElementById(s).style.display = 'none'); document.getElementById(id).style.display = 'flex'; },
+    m(n, s) { document.getElementById(n+'Modal').style.display = s ? 'flex' : 'none'; },
+    upd() {
+        document.getElementById('iceFrame').style.borderWidth = Game.st.frozen > 0 ? '25px' : '0px';
         let i = "";
         if(Game.st.shield) i+="🛡️ "; if(Game.st.magnet>0) i+="🧲 "; 
         if(Game.st.god>0) i+="🎋 "; if(Game.st.double>0) i+="x2 ";
-        if(Game.st.reverse>0) i+="⚡ ";
+        if(Game.st.reverse>0) i+="⚡ "; if(Game.st.giant>0) i+="🥖 ";
         document.getElementById('stIcon').innerText = i;
     }
 };
 
-// INPUT
-const input = (x) => {
-    if(!Game.run || Game.st.stun > 0) return;
-    let tx = x - 50;
-    if(Game.st.reverse > 0) tx = W - x - 50;
-    let spd = Game.st.frozen > 0 ? 0.2 : 1;
-    // Hiệu ứng Lag
-    if(Game.st.lag > 0) spd = 0.05; 
-    
-    Game.p.x += (tx - Game.p.x) * spd;
+/* FIX MOVEMENT: Canvas listener target fixed */
+const handleInput = (clientX) => {
+    if(!Game.running || Game.st.stun > 0) return;
+    let targetX = clientX - 55;
+    if(Game.st.reverse > 0) targetX = W - clientX - 55;
+    let spd = Game.st.frozen > 0 ? 0.18 : (Game.st.lag > 0 ? 0.04 : 1);
+    Game.player.x += (targetX - Game.player.x) * spd;
 };
-canvas.addEventListener('mousemove', e => input(e.clientX));
-canvas.addEventListener('touchmove', e => { e.preventDefault(); input(e.touches[0].clientX); }, {passive:false});
-window.onresize = () => { if(Game.run) Game.init(); };
+
+// Sửa từ 'canvas' thành 'cvs' để tránh lỗi ReferenceError
+cvs.addEventListener('mousemove', e => handleInput(e.clientX));
+cvs.addEventListener('touchmove', e => { e.preventDefault(); handleInput(e.touches[0].clientX); }, {passive:false});
+
+window.onresize = () => { if(Game.running) Game.init(); };
 </script>
 </body>
 </html>
