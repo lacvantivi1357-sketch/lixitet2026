@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lì Xì 5.0 Pro Max</title>
+    <title>Lì Xì 5.0 Pro Max (Fixed)</title>
     <style>
         :root { --primary: #e53935; --gold: #ffd700; --dark: #212121; }
         body {
@@ -100,7 +100,7 @@
         <div class="admin-btn" onclick="openLogin()">⚙️</div>
         <div class="logo">🧧</div>
         <h1 style="color: #b71c1c; margin: 0;">LÌ XÌ 5.0</h1>
-        <p>Phiên bản: Gacha Pro Max</p>
+        <p>Phiên bản: Gacha Pro Max (Fixed)</p>
         <button class="btn" onclick="Game.init()">BẮT ĐẦU</button>
     </div>
 
@@ -279,7 +279,9 @@
                         if(!Game.fever.active) {
                             Game.fever.val += 10;
                             if(Game.fever.val >= 100) {
-                                Game.fever.active = true; Game.fever.timer = 5; // 5 seconds
+                                Game.fever.active = true;
+                                Game.fever.val = 0; // --- FIX 1: RESET NĂNG LƯỢNG VỀ 0 ---
+                                Game.fever.timer = 5; 
                                 document.getElementById('gameScreen').classList.add('fever-active');
                                 Audio.play('square', 600, 0.5);
                             }
@@ -299,7 +301,9 @@
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('pickScreen').style.display = 'flex';
             document.getElementById('finalScore').innerText = Game.score;
-            let luck = Math.min(50, Math.floor(Game.score/2));
+            
+            // --- FIX 2a: Tăng cách tính điểm may mắn (1 điểm = 1%) ---
+            let luck = Math.min(100, Game.score); 
             document.getElementById('luckPc').innerText = luck;
             Picker.setup(luck);
         }
@@ -364,7 +368,10 @@
             let totalW = 0;
             let pool = cfg.map(c => {
                 let w = c.w;
-                if(c.a >= 50000) w = w * (1 + luck/100); // Boost high prize
+                if(c.a >= 50000) {
+                    // --- FIX 2b: Boost mạnh tỷ lệ giải to (Tối đa nhân 4 lần) ---
+                    w = w * (1 + (luck * 3)/100); 
+                }
                 totalW += w;
                 return {...c, finalW: w};
             });
