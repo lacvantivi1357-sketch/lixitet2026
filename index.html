@@ -3,752 +3,388 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lì Xì 26.0 - Infinite Architect Edition</title>
+    <title>Lì Xì 27.0 - Crystal Clear HD</title>
     <style>
-        /* --- CSS VARIABLES --- */
         :root { 
-            --primary-red: #d32f2f; 
-            --gold-yellow: #fbc02d; 
-            --fever-blue: #00e5ff; 
-            --ice-blue: #bbdefb; 
-            --canvas-bg: #ffffff;
-            --admin-bg: #f8f9fa;
+            --primary: #d32f2f; --gold: #fbc02d; --fever: #00e5ff; 
+            --ice: #bbdefb; --bg: #ffffff;
         }
-
-        /* --- GLOBAL RESET --- */
-        * { box-sizing: border-box; }
         body { 
-            margin: 0; padding: 0; overflow: hidden; 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background: #000; touch-action: none; user-select: none; transition: background 0.5s; 
+            margin: 0; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: #111; touch-action: none; user-select: none; transition: 0.3s; 
         }
 
-        /* --- VISUAL OVERLAYS (NO BLUR) --- */
+        /* --- HIỆU ỨNG THỊ GIÁC (KHÔNG MỜ - CHỈ SẮC NÉT) --- */
         #iceOverlay { 
             position: fixed; inset: 0; pointer-events: none; z-index: 100; 
-            border: 25px solid rgba(187, 222, 251, 0.5); opacity: 0; transition: 0.5s; 
-            box-shadow: inset 0 0 120px rgba(187, 222, 251, 0.3); 
+            border: 20px solid rgba(187, 222, 251, 0.5); opacity: 0; transition: 0.5s; 
+            box-shadow: inset 0 0 80px rgba(187, 222, 251, 0.3); 
         }
-        .fx-eclipse { background: rgba(0,0,0,0.68) !important; transition: 1.5s; }
+        .fx-eclipse { 
+            /* Thay vì đen kịt, hiệu ứng này chỉ làm sầm màn hình xuống một chút */
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.6) 100%) !important; 
+            transition: 1.5s; 
+        }
         .fx-fever-glow { box-shadow: inset 0 0 100px rgba(0, 229, 255, 0.4); }
-        .fx-shake-ui { animation: uiShake 0.15s infinite; }
+        .fx-drunk-basket { animation: drunkMove 0.2s infinite; }
         
-        @keyframes uiShake { 
-            0% { transform: translate(0,0); } 
-            25% { transform: translate(3px, -3px); } 
-            75% { transform: translate(-3px, 3px); } 
-            100% { transform: translate(0,0); } 
+        @keyframes drunkMove { 
+            0% { transform: translateX(0); } 
+            25% { transform: translateX(12px) rotate(4deg); } 
+            75% { transform: translateX(-12px) rotate(-4deg); } 
+            100% { transform: translateX(0); } 
         }
 
-        /* --- SCREENS SYSTEM --- */
+        /* --- HỆ THỐNG MÀN HÌNH --- */
         .screen { 
             position: absolute; inset: 0; display: none; flex-direction: column; 
             align-items: center; justify-content: center; text-align: center; color: white; 
         }
-        #menuScreen { 
-            display: flex; 
-            background: radial-gradient(circle at center, #ff5252 0%, #b71c1c 100%); 
-            z-index: 10; 
-        }
-        #gameScreen { background: var(--canvas-bg); cursor: none; overflow: hidden; }
+        #menuScreen { display: flex; background: radial-gradient(circle, #ff5252, #b71c1c); z-index: 10; }
+        #gameScreen { background: var(--bg); cursor: none; overflow: hidden; }
 
-        /* --- HUD & TOP BAR --- */
-        .hud-container { 
-            position: absolute; top: 0; width: 100%; height: 100px;
-            display: flex; flex-direction: column; align-items: center; z-index: 20; 
-            pointer-events: none;
+        /* --- HUD (GIAO DIỆN TRONG GAME) --- */
+        .hud { 
+            position: absolute; top: 10px; width: 100%; display: flex; 
+            justify-content: space-around; font-size: 1.8rem; font-weight: 900; 
+            color: var(--primary); z-index: 20; text-shadow: 2px 2px 0 #fff; 
         }
-        .hud-main {
-            width: 100%; display: flex; justify-content: space-around; 
-            padding: 15px 0; font-size: 1.8rem; font-weight: 900; 
-            color: var(--primary-red); text-shadow: 2px 2px 0 #fff;
+        .status-icons { 
+            position: absolute; top: 60px; display: flex; gap: 8px; 
+            font-size: 1.5rem; justify-content: center; z-index: 20; 
         }
-        .status-tray { 
-            display: flex; gap: 10px; font-size: 1.6rem; 
-            background: rgba(255,255,255,0.7); padding: 5px 20px; border-radius: 30px;
-        }
-
-        /* --- ENERGY SYSTEM --- */
-        .energy-outer { 
-            position: absolute; bottom: 30px; left: 10%; width: 80%; height: 18px; 
-            background: rgba(0,0,0,0.1); border-radius: 20px; border: 3px solid var(--primary-red); 
+        .energy-bar-container { 
+            position: absolute; bottom: 25px; left: 10%; width: 80%; height: 16px; 
+            background: rgba(0,0,0,0.1); border-radius: 20px; border: 3px solid var(--primary); 
             overflow: hidden; z-index: 20; 
         }
-        .energy-inner { 
-            width: 0%; height: 100%; background: linear-gradient(90deg, var(--fever-blue), #fff); 
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        .energy-fill { 
+            width: 0%; height: 100%; background: linear-gradient(90deg, var(--fever), #fff); 
+            transition: width 0.3s ease-out; 
         }
 
-        /* --- GACHA CARD SYSTEM --- */
-        .card-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 25px; }
-        .gacha-card { perspective: 1000px; width: 100px; height: 145px; cursor: pointer; }
-        .gacha-card-inner { position: relative; width: 100%; height: 100%; transition: 0.8s; transform-style: preserve-3d; }
-        .gacha-face { 
-            position: absolute; inset: 0; backface-visibility: hidden; border-radius: 18px; 
-            display: flex; align-items: center; justify-content: center; border: 4px solid var(--gold-yellow); 
+        /* --- HỆ THỐNG GACHA --- */
+        .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
+        .card { perspective: 1000px; width: 95px; height: 140px; cursor: pointer; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: 0.8s; transform-style: preserve-3d; }
+        .card-face { 
+            position: absolute; inset: 0; backface-visibility: hidden; border-radius: 15px; 
+            display: flex; align-items: center; justify-content: center; border: 3px solid var(--gold); 
         }
-        .gacha-front { background: var(--primary-red); font-size: 3.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
-        .gacha-back { background: white; color: var(--primary-red); font-weight: 900; transform: rotateY(180deg); font-size: 1.4rem; }
-        .is-flipped .gacha-card-inner { transform: rotateY(180deg); }
+        .card-front { background: var(--primary); font-size: 3rem; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        .card-back { background: white; color: var(--primary); font-weight: 900; transform: rotateY(180deg); font-size: 1.3rem; }
+        .flipped .card-inner { transform: rotateY(180deg); }
 
-        /* --- BUTTONS --- */
-        .btn-ui { 
-            background: var(--gold-yellow); color: #7f0000; border: none; padding: 18px 50px; 
-            border-radius: 60px; font-weight: 900; cursor: pointer; 
-            box-shadow: 0 8px 0 #b79500; margin-top: 20px; font-size: 1.4rem; 
-            text-transform: uppercase; transition: 0.2s;
+        /* --- BUTTONS & ADMIN --- */
+        .btn { 
+            background: var(--gold); color: #7f0000; border: none; padding: 15px 45px; 
+            border-radius: 50px; font-weight: bold; cursor: pointer; 
+            box-shadow: 0 6px 0 #b79500; margin-top: 15px; font-size: 1.2rem; 
         }
-        .btn-ui:hover { transform: scale(1.05); }
-        .btn-ui:active { transform: translateY(6px); box-shadow: none; }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .admin-trigger { position: fixed; top: 10px; right: 10px; opacity: 0.05; cursor: pointer; z-index: 1000; font-size: 24px; }
         
-        .admin-entry { position: fixed; top: 10px; right: 10px; opacity: 0.05; cursor: pointer; z-index: 1000; font-size: 26px; }
-
-        /* --- MODALS & ADMIN --- */
-        .modal-overlay { 
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
+        .modal { 
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
             z-index: 2000; align-items: center; justify-content: center; 
         }
         .modal-box { 
-            background: white; padding: 30px; border-radius: 25px; width: 95%; 
-            max-width: 550px; color: #333; max-height: 90vh; overflow-y: auto; 
-            box-shadow: 0 0 40px rgba(255,255,255,0.2);
+            background: white; padding: 25px; border-radius: 20px; width: 92%; 
+            max-width: 500px; color: #333; max-height: 90vh; overflow-y: auto; 
         }
-        .admin-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #ddd; font-size: 1.1rem; }
-        .admin-textarea { 
-            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; 
-            border: 2px solid #eee; font-family: 'Courier New', monospace; font-size: 0.95rem; 
-        }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .stat-box { background: #f0f2f5; padding: 15px; border-radius: 15px; text-align: center; border-bottom: 4px solid var(--gold-yellow); }
-        .stat-label { font-size: 0.8rem; color: #666; text-transform: uppercase; }
-        .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--primary-red); }
-
-        @keyframes float-logo { 
-            0%, 100% { transform: translateY(0) rotate(0); } 
-            50% { transform: translateY(-25px) rotate(5deg); } 
-        }
+        textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; font-family: 'Courier New', monospace; font-size: 0.85rem; }
+        .stat-card { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; border-left: 6px solid var(--gold); align-items: center; }
     </style>
 </head>
 <body>
     <div id="iceOverlay"></div>
     
     <div id="menuScreen" class="screen">
-        <div class="admin-entry" onclick="UI.toggle('loginModal', true)">⚙️</div>
-        <div style="font-size: 7rem; animation: float-logo 4s ease-in-out infinite;">🧧</div>
-        <h1 style="margin:0; font-size: 4rem; text-shadow: 4px 4px 0 #7f0000;">LÌ XÌ 26.0</h1>
-        <p style="font-size: 1.4rem; font-weight: 300; letter-spacing: 2px;">THE INFINITE ARCHITECT</p>
-        <button class="btn-ui" onclick="Game.initSession()">BẮT ĐẦU CHIẾN</button>
+        <div class="admin-trigger" onclick="UI.show('loginModal')">⚙️</div>
+        <div style="font-size: 6.5rem; filter: drop-shadow(0 0 25px var(--gold));">🐲</div>
+        <h1 style="margin:0; font-size: 3.5rem; text-shadow: 3px 3px 0 #7f0000;">LÌ XÌ 27.0</h1>
+        <p>Bản Siêu Sắc Nét - Cân Bằng IT HCMUTE</p>
+        <button class="btn" onclick="Game.start()">BẮT ĐẦU CHƠI</button>
     </div>
 
     <div id="gameScreen" class="screen">
-        <div class="hud-container">
-            <div class="hud-main">
-                <span>⌛ <span id="timeVal">60</span>s</span>
-                <span>💰 <span id="scoreVal">0</span></span>
-            </div>
-            <div class="status-tray" id="statusIcons"></div>
+        <div class="hud">
+            <span>⏳ <span id="timeVal">60</span>s</span>
+            <span>💰 <span id="scoreVal">0</span></span>
         </div>
+        <div class="status-icons" id="statusIcons"></div>
         <canvas id="gameCanvas"></canvas>
-        <div class="energy-outer"><div class="energy-inner" id="energyFill"></div></div>
+        <div class="energy-bar-container"><div class="energy-fill" id="energyFill"></div></div>
     </div>
 
     <div id="pickScreen" class="screen">
-        <h2 style="color:var(--gold-yellow); font-size: 2.5rem; margin-bottom: 5px;">BỐC QUÀ MAY MẮN</h2>
-        <p style="margin-bottom: 20px; font-size: 1.1rem;">Điểm Kỹ Năng giúp bớt giải nhỏ: +<span id="luckBonus">0</span>%</p>
+        <h2 style="color:var(--gold); font-size: 2.2rem;">CHỌN QUÀ MAY MẮN</h2>
+        <p>Luck Bonus (Capped 30%): +<span id="luckBonus">0</span>%</p>
         <div class="card-grid" id="cardGrid"></div>
     </div>
 
     <div id="revealScreen" class="screen">
-        <div style="background:white; color:var(--primary-red); padding:50px; border-radius:40px; border:8px solid var(--gold-yellow); width:350px; box-shadow: 0 0 100px rgba(255,215,0,0.6);">
-            <h2 style="margin:0; font-size: 1.8rem;">PHẦN THƯỞNG</h2>
-            <div style="font-size: 6rem; margin: 25px 0;">🎁</div>
-            <div id="prizeAmount" style="font-size: 3.5rem; font-weight: 900; letter-spacing: -2px;">0đ</div>
-            <button class="btn-ui" onclick="location.reload()">LƯU & KẾT THÚC</button>
+        <div style="background:white; color:var(--primary); padding:40px; border-radius:30px; border:6px solid var(--gold); width:320px; box-shadow: 0 0 60px rgba(255,215,0,0.5);">
+            <h2 style="margin:0">CHÚC MỪNG!</h2>
+            <div style="font-size: 5.5rem; margin: 20px 0;">🧧</div>
+            <div id="prizeAmount" style="font-size: 3.2rem; font-weight: 900;">0đ</div>
+            <button class="btn" onclick="location.reload()">CHƠI TIẾP</button>
         </div>
     </div>
 
-    <div id="loginModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 400px;">
-            <h3 style="text-align:center; margin-bottom: 25px;">🔐 XÁC MINH QUYỀN TRUY CẬP</h3>
-            <input type="text" id="admU" class="admin-input" placeholder="Tên đăng nhập">
-            <input type="password" id="admP" class="admin-input" placeholder="Mật khẩu">
-            <button class="btn-ui" style="width:100%" onclick="Admin.auth()">ĐĂNG NHẬP</button>
-            <button class="btn-ui" style="width:100%; background:#eee; box-shadow:none; color:#666;" onclick="UI.toggle('loginModal', false)">HỦY BỎ</button>
-        </div>
-    </div>
-
-    <div id="adminPanel" class="modal-overlay">
+    <div id="loginModal" class="modal">
         <div class="modal-box">
-            <h3 style="margin-top:0; color:var(--primary-red); border-bottom: 3px solid var(--gold-yellow); padding-bottom: 10px;">📊 DASHBOARD ĐIỀU HÀNH</h3>
-            
-            <div class="stat-grid">
-                <div class="stat-box">
-                    <div class="stat-label">Tổng chi thực tế</div>
-                    <div class="stat-value" id="stTotal">0đ</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Tổng lượt chơi</div>
-                    <div class="stat-value" id="stCount">0</div>
-                </div>
-            </div>
+            <h3 style="text-align:center">🔐 XÁC THỰC ADMIN</h3>
+            <input type="text" id="admU" placeholder="User" style="width:100%; padding:12px; margin-bottom:12px; border-radius:8px; border:1px solid #ddd;">
+            <input type="password" id="admP" placeholder="Password" style="width:100%; padding:12px; margin-bottom:12px; border-radius:8px; border:1px solid #ddd;">
+            <button class="btn" style="width:100%" onclick="Admin.login()">VÀO DASHBOARD</button>
+        </div>
+    </div>
 
-            <label><b>Cấu hình 10 Mức thưởng (Tiền : Trọng số):</b></label>
-            <textarea id="cfgData" class="admin-textarea" rows="11"></textarea>
-            
-            <div style="margin-top: 15px;">
-                <button class="btn-ui" style="width:100%" onclick="Admin.saveConfig()">LƯU CẤU HÌNH</button>
-                <button class="btn-ui" style="width:100%; background:#f44336; color:white; font-size: 1rem;" onclick="Admin.wipeData()">RESET TOÀN BỘ DỮ LIỆU</button>
-                <button class="btn-ui" style="width:100%; background:#999; color:white;" onclick="UI.toggle('adminPanel', false)">ĐÓNG BẢNG</button>
-            </div>
+    <div id="adminPanel" class="modal">
+        <div class="modal-box">
+            <h3 style="margin-top:0">📊 THỐNG KÊ KINH TẾ</h3>
+            <div id="statsSummary"></div>
+            <label><b>Tỷ lệ 10 mức thưởng (Tiền : Trọng số):</b></label>
+            <textarea id="cfgData" rows="11"></textarea>
+            <button class="btn" style="width:100%" onclick="Admin.save()">LƯU CẤU HÌNH</button>
+            <button class="btn" style="width:100%; background:#f44336; color:white;" onclick="Admin.clear()">RESET LỊCH SỬ</button>
+            <button class="btn" style="width:100%; background:#999; color:white;" onclick="UI.hide('adminPanel')">THOÁT</button>
         </div>
     </div>
 
 <script>
-/* ==========================================================================
-   MODULE 1: DATA PERSISTENCE (HỆ THỐNG DỮ LIỆU)
-   ========================================================================== */
-const Data = {
-    cfgKey: 'lx26_config_store',
-    histKey: 'lx26_history_store',
-    
-    // Mặc định 10 mức thưởng cực kỳ cân bằng để Admin không bao giờ cháy túi
-    defaultConfig: [
-        {amount: 10000, weight: 220}, // Phổ biến nhất
-        {amount: 20000, weight: 140},
-        {amount: 30000, weight: 90},
-        {amount: 40000, weight: 60},
-        {amount: 50000, weight: 30},
-        {amount: 60000, weight: 15},
-        {amount: 70000, weight: 8},
-        {amount: 80000, weight: 4},
-        {amount: 90000, weight: 2},
-        {amount: 100000, weight: 1}  // Hiếm nhất
+/* ================= SYSTEM DATA ================= */
+const Sys = {
+    cfgKey: 'lx27_cfg', histKey: 'lx27_hist',
+    // 10 MỨC GIÁ CÂN BẰNG TỐI ƯU
+    defaultCfg: [
+        {a:10000, w:220}, {a:20000, w:140}, {a:30000, w:90}, {a:40000, w:60},
+        {a:50000, w:30}, {a:60000, w:15}, {a:70000, w:8}, {a:80000, w:4},
+        {a:90000, w:2}, {a:100000, w:1}
     ],
-
-    init() {
-        if (!localStorage.getItem(this.cfgKey)) {
-            localStorage.setItem(this.cfgKey, JSON.stringify(this.defaultConfig));
-        }
-    },
-
-    getConfig() {
-        return JSON.parse(localStorage.getItem(this.cfgKey));
-    },
-
-    saveConfig(newData) {
-        localStorage.setItem(this.cfgKey, JSON.stringify(newData));
-    },
-
-    getHistory() {
-        return JSON.parse(localStorage.getItem(this.histKey)) || [];
-    },
-
-    addHistory(val) {
-        let history = this.getHistory();
-        history.push({ time: new Date().toISOString(), value: val });
-        // Chỉ giữ 200 bản ghi gần nhất để tối ưu dung lượng
-        if (history.length > 200) history.shift();
-        localStorage.setItem(this.histKey, JSON.stringify(history));
+    get: () => JSON.parse(localStorage.getItem(Sys.cfgKey)) || Sys.defaultCfg,
+    save: (d) => localStorage.setItem(Sys.cfgKey, JSON.stringify(d)),
+    log: (v) => { 
+        let h = JSON.parse(localStorage.getItem(Sys.histKey)) || []; 
+        h.push({t: new Date().toLocaleTimeString(), v}); 
+        localStorage.setItem(Sys.histKey, JSON.stringify(h.slice(-300))); 
     }
 };
 
-/* ==========================================================================
-   MODULE 2: AUDIO SYNTHESIZER (ĐỘNG CƠ ÂM THANH KỸ THUẬT SỐ)
-   ========================================================================== */
-const SFX = {
-    context: null,
-    
-    init() {
-        try {
-            window.AudioContext = window.AudioContext || window.webkitAudioContext;
-            this.context = new AudioContext();
-        } catch(e) { console.warn("AudioContext not supported"); }
-    },
-
-    play(freq, type = 'sine', duration = 0.1, vol = 0.1) {
-        if (!this.context) return;
-        if (this.context.state === 'suspended') this.context.resume();
-
-        const osc = this.context.createOscillator();
-        const gain = this.context.createGain();
-
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, this.context.currentTime);
-        
-        gain.gain.setValueAtTime(vol, this.context.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.context.currentTime + duration);
-
-        osc.connect(gain);
-        gain.connect(this.context.destination);
-
-        osc.start();
-        osc.stop(this.context.currentTime + duration);
-    },
-
-    onCoin() { this.play(950, 'sine', 0.1, 0.1); },
-    onStar() { this.play(1200, 'triangle', 0.15, 0.1); this.play(1500, 'sine', 0.2, 0.05); },
-    onBad() { this.play(100, 'sawtooth', 0.5, 0.15); },
-    onFever() { 
-        this.play(440, 'square', 0.3, 0.1);
-        setTimeout(() => this.play(660, 'square', 0.3, 0.1), 100);
-        setTimeout(() => this.play(880, 'square', 0.4, 0.1), 200);
+/* ================= AUDIO ENGINE (SYNTH) ================= */
+const Sound = {
+    ctx: null,
+    init() { if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+    play(freq, type = 'sine', dur = 0.1) {
+        if(!this.ctx) return;
+        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+        o.type = type; o.frequency.value = freq;
+        g.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur);
+        o.connect(g); g.connect(this.ctx.destination);
+        o.start(); o.stop(this.ctx.currentTime + dur);
     }
 };
 
-/* ==========================================================================
-   MODULE 3: PHYSICS & GAME ENGINE (ĐỘNG CƠ TRÒ CHƠI)
-   ========================================================================== */
+/* ================= GAME ENGINE ================= */
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let W, H;
 
 const Game = {
-    isRunning: false,
-    score: 0,
-    time: 60,
-    items: [],
-    particles: [],
-    
-    player: {
-        x: 0, y: 0, w: 105, h: 95,
-        baseW: 105,
-        luckBonus: 0,
-        armor: 0
+    active: false, score: 0, time: 60, items: [], particles: [],
+    player: { x: 0, y: 0, w: 110, h: 100 },
+    fever: { val: 0, active: false, timer: 0 },
+    // TRẠNG THÁI 30 VẬT PHẨM (KHÔNG MỜ - CHỈ SẮC NÉT)
+    states: { shield: false, frozen: 0, reverse: 0, magnet: 0, eclipse: 0, stun: 0, lag: 0, drunk: 0, god: 0, double: 0, blackhole: 0, fog: 0 },
+
+    start: () => {
+        Sound.init();
+        W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight;
+        Game.player.x = W/2 - 55; Game.player.y = H - 150;
+        Game.active = true; Game.score = 0; Game.time = 60; Game.items = []; Game.particles = [];
+        Game.fever = { val:0, active:false, timer:0 };
+        Object.keys(Game.states).forEach(k => Game.states[k] = (typeof Game.states[k] === 'boolean' ? false : 0));
+        UI.show('gameScreen'); document.getElementById('menuScreen').style.display='none';
+        Game.loop(); Game.spawn(); Game.tick();
     },
 
-    fever: {
-        value: 0,
-        isActive: false,
-        timer: 0
-    },
-
-    // 30 loại trạng thái logic đầy đủ
-    states: {
-        shield: false,
-        frozen: 0,
-        reverse: 0,
-        magnet: 0,
-        eclipse: 0,
-        stun: 0,
-        lag: 0,
-        drunk: 0,
-        god: 0,
-        double: 0,
-        blackhole: 0,
-        slow: 0,
-        ghost: 0,
-        fog: 0,
-        acid: 0
-    },
-
-    initSession() {
-        Data.init();
-        SFX.init();
-        W = canvas.width = window.innerWidth;
-        H = canvas.height = window.innerHeight;
-        
-        this.player.x = W / 2 - this.player.w / 2;
-        this.player.y = H - 150;
-        this.isRunning = true;
-        this.score = 0;
-        this.time = 60;
-        this.items = [];
-        this.particles = [];
-        
-        // Reset trạng thái
-        this.fever = { value: 0, isActive: false, timer: 0 };
-        Object.keys(this.states).forEach(key => {
-            this.states[key] = (typeof this.states[key] === 'boolean' ? false : 0);
-        });
-
-        UI.show('gameScreen');
-        document.getElementById('menuScreen').style.display = 'none';
-
-        this.mainLoop();
-        this.spawnLoop();
-        this.clockLoop();
-    },
-
-    clockLoop() {
-        const timer = setInterval(() => {
-            if (!this.isRunning) return clearInterval(timer);
-            
-            this.time--;
-            document.getElementById('timeVal').innerText = this.time;
-
-            // Xử lý giảm thời gian hiệu ứng
-            Object.keys(this.states).forEach(key => {
-                if (typeof this.states[key] === 'number' && this.states[key] > 0) {
-                    this.states[key]--;
-                }
-            });
-
-            // Fever logic
-            if (this.fever.isActive) {
-                this.fever.timer--;
-                if (this.fever.timer <= 0) this.fever.isActive = false;
-            }
-
-            // Acid Rain penalty
-            if (this.states.acid > 0) {
-                this.score = Math.max(0, this.score - 1);
-            }
-
+    tick: () => {
+        let clock = setInterval(() => {
+            if(!Game.active) return clearInterval(clock);
+            Game.time--; document.getElementById('timeVal').innerText = Game.time;
+            Object.keys(Game.states).forEach(k => { if(typeof Game.states[k] === 'number' && Game.states[k] > 0) Game.states[k]--; });
+            if(Game.fever.active) { Game.fever.timer--; if(Game.fever.timer <= 0) Game.fever.active = false; }
             UI.updateFX();
-            if (this.time <= 0) this.endSession();
+            if(Game.time <= 0) Game.end();
         }, 1000);
     },
 
-    spawnLoop() {
-        if (!this.isRunning) return;
+    spawn: () => {
+        if(!Game.active || Game.items.length > 20) { setTimeout(Game.spawn, 400); return; }
+        let r = Math.random(), type = 'coin';
+        
+        // CÂN BẰNG TỶ LỆ VẬT PHẨM
+        if(r < 0.12) type = 'bomb';
+        else if(r < 0.22) type = 'star';
+        else if(r < 0.24) type = 'ice'; else if(r < 0.26) type = 'reverse'; else if(r < 0.28) type = 'drunk';
+        else if(r < 0.29) type = 'stun'; else if(r < 0.31) type = 'lag'; else if(r < 0.33) type = 'blackhole';
+        else if(r < 0.35) type = 'shield'; else if(r < 0.37) type = 'magnet';
 
-        // Giới hạn vật phẩm trên màn hình để tránh quá tải
-        if (this.items.length < 25) {
-            let r = Math.random();
-            let type = 'coin';
+        if(Game.fever.active) type = (Math.random() < 0.35) ? 'star' : 'coin';
 
-            // Phân bổ xác suất vật phẩm (75% thường, 25% đặc biệt)
-            if (r < 0.12) type = 'bomb';
-            else if (r < 0.22) type = 'star';
-            else if (r < 0.24) type = 'ice';
-            else if (r < 0.26) type = 'reverse';
-            else if (r < 0.28) type = 'drunk';
-            else if (r < 0.29) type = 'stun';
-            else if (r < 0.31) type = 'lag';
-            else if (r < 0.32) type = 'blackhole';
-            else if (r < 0.34) type = 'shield';
-            else if (r < 0.36) type = 'magnet';
-            else if (r < 0.37) type = 'god';
-
-            // Fever mode: Chỉ rơi quà
-            if (this.fever.isActive) {
-                type = (Math.random() < 0.4) ? 'star' : 'coin';
-            }
-
-            this.items.push({
-                x: Math.random() * (W - 60),
-                y: -60,
-                type: type,
-                spd: (4 + Math.random() * 2.5) * (1 + (60 - this.time) / 220),
-                phase: Math.random() * Math.PI * 2
-            });
-        }
-
-        let nextSpawn = this.fever.isActive ? 180 : Math.max(450, 950 - (60 - this.time) * 8);
-        setTimeout(() => this.spawnLoop(), nextSpawn);
+        Game.items.push({ 
+            x: Math.random()*(W-60), y: -60, type, 
+            spd: (4 + Math.random()*2.2) * (1 + (60-Game.time)/220),
+            phase: Math.random()*Math.PI*2
+        });
+        setTimeout(Game.spawn, Game.fever.active ? 180 : 800);
     },
 
-    mainLoop() {
-        if (!this.isRunning) return;
-        ctx.clearRect(0, 0, W, H);
-
-        // Xử lý Particles (Hệ thống hạt)
-        for (let i = this.particles.length - 1; i >= 0; i--) {
-            let p = this.particles[i];
+    loop: () => {
+        if(!Game.active) return;
+        ctx.clearRect(0,0,W,H);
+        
+        // Hiệu ứng hạt nổ (Catch Particles)
+        Game.particles.forEach((p, idx) => {
             p.x += p.vx; p.y += p.vy; p.life -= 0.03;
-            if (p.life <= 0) this.particles.splice(i, 1);
+            if(p.life <= 0) Game.particles.splice(idx, 1);
             else {
                 ctx.fillStyle = `rgba(211, 47, 47, ${p.life})`;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
             }
-        }
+        });
 
-        // Vẽ người chơi
-        let pIcon = "🧺";
-        if (this.fever.isActive) pIcon = "😎";
-        else if (this.states.frozen > 0) pIcon = "🥶";
-        else if (this.states.stun > 0) pIcon = "😵";
-        
-        ctx.save();
-        if (this.states.ghost > 0) ctx.globalAlpha = 0.25;
+        let pIcon = Game.fever.active ? "😎" : (Game.states.frozen > 0 ? "🥶" : (Game.states.stun > 0 ? "😵" : "🧺"));
         ctx.font = `110px Arial`;
-        ctx.fillText(pIcon, this.player.x, H - 60);
-        ctx.restore();
+        ctx.fillText(pIcon, Game.player.x, H-60);
 
-        // Xử lý Vật phẩm
-        for (let i = this.items.length - 1; i >= 0; i--) {
-            let it = this.items[i];
-            let isBad = ['bomb', 'ice', 'reverse', 'drunk', 'stun', 'lag', 'blackhole'].includes(it.type);
-
-            // Vật lý hút (Fever/Magnet/Blackhole)
-            if (it.type === 'blackhole') {
-                it.y += it.spd;
-                this.items.forEach(other => {
-                    if (other !== it) {
-                        let d = Math.hypot(it.x - other.x, it.y - other.y);
-                        if (d < 160) {
-                            other.x += (it.x - other.x) * 0.12;
-                            other.y += (it.y - other.y) * 0.12;
-                        }
-                    }
-                });
-            } else if ((this.fever.isActive || this.states.magnet > 0) && !isBad) {
-                it.x += (this.player.x + 55 - it.x) * 0.15;
-                it.y += (H - 100 - it.y) * 0.15;
-            } else {
-                it.y += this.states.slow > 0 ? it.spd * 0.4 : it.spd;
-                if (this.states.fog > 0) it.x += Math.sin(it.phase + it.y / 25) * 5;
+        for(let i=Game.items.length-1; i>=0; i--) {
+            let it = Game.items[i];
+            let isBad = ['bomb','ice','reverse','drunk','stun','lag','blackhole'].includes(it.type);
+            
+            if((Game.fever.active || Game.states.magnet > 0) && !isBad) {
+                it.x += (Game.player.x + 55 - it.x) * 0.15; it.y += (H - 100 - it.y) * 0.15;
+            } else { 
+                it.y += it.spd; 
+                if(Game.states.fog > 0) it.x += Math.sin(it.phase + it.y/25) * 5;
             }
 
-            // Vẽ Icon
             ctx.font = `50px Arial`;
-            const iconMap = { coin: '🧧', bomb: '💣', star: '🌟', ice: '❄️', reverse: '⚡', drunk: '🤡', shield: '🛡️', magnet: '🧲', god: '🎋', blackhole: '🕳️' };
+            let iconMap = {coin:'🧧', bomb:'💣', star:'🌟', ice:'❄️', reverse:'⚡', drunk:'🤡', shield:'🛡️', magnet:'🧲', blackhole:'🕳️'};
             ctx.fillText(iconMap[it.type] || '🧧', it.x, it.y);
 
-            // Va chạm (Collision)
-            if (it.y > H - 135 && it.y < H - 50 && it.x > this.player.x - 40 && it.x < this.player.x + this.player.w) {
-                this.handleCollision(it.type, it.x, it.y);
-                this.items.splice(i, 1);
-            } else if (it.y > H) {
-                this.items.splice(i, 1);
-            }
+            if(it.y > H-135 && it.y < H-50 && it.x > Game.player.x-40 && it.x < Game.player.x + 110) {
+                Game.onCatch(it.type, it.x, it.y); Game.items.splice(i,1);
+            } else if(it.y > H) Game.items.splice(i,1);
         }
-
-        document.getElementById('scoreVal').innerText = Math.floor(this.score);
-        document.getElementById('energyFill').style.width = this.fever.isActive ? "100%" : this.fever.value + "%";
-        requestAnimationFrame(() => this.mainLoop());
+        document.getElementById('scoreVal').innerText = Math.floor(Game.score);
+        document.getElementById('energyFill').style.width = Game.fever.active ? "100%" : Game.fever.val + "%";
+        requestAnimationFrame(Game.loop);
     },
 
-    handleCollision(type, x, y) {
-        let isBad = ['bomb', 'ice', 'reverse', 'drunk', 'stun', 'lag', 'blackhole'].includes(type);
+    onCatch: (type, x, y) => {
+        let isBad = ['bomb','ice','reverse','drunk','stun','lag','blackhole'].includes(type);
+        if(isBad && Game.states.shield) { Game.states.shield = false; Sound.play(150, 'sawtooth'); return; }
         
-        if (isBad && (this.states.god > 0)) return;
-        if (isBad && this.states.shield) {
-            this.states.shield = false;
-            SFX.onBad();
-            return;
-        }
+        if(type === 'bomb') { Game.score = Math.max(0, Game.score - 10); Game.fever.val = Math.max(0, Game.fever.val - 45); Sound.play(100, 'sawtooth', 0.4); }
+        else if(type === 'coin') { Game.score += 1; Sound.play(900); }
+        else if(type === 'star') { if(!Game.fever.active) { Game.fever.val += 20; if(Game.fever.val >= 100) { Game.fever.active = true; Game.fever.val = 0; Game.fever.timer = 8; } } Sound.play(1100); }
+        else if(type === 'ice') Game.states.frozen = 4;
+        else if(type === 'reverse') Game.states.reverse = 5;
+        else if(type === 'drunk') Game.states.drunk = 5; 
+        else if(type === 'stun') Game.states.stun = 1.5;
+        else if(type === 'shield') Game.states.shield = true;
+        else if(type === 'magnet') Game.states.magnet = 6;
 
-        if (type === 'bomb') {
-            this.score = Math.max(0, this.score - 10);
-            this.fever.value = Math.max(0, this.fever.value - 45); // Chỉ trừ năng lượng, không mất sạch
-            SFX.onBad();
-        } else if (type === 'coin') {
-            this.score += 1;
-            SFX.onCoin();
-        } else if (type === 'star') {
-            if (!this.fever.isActive) {
-                this.fever.value += 20;
-                if (this.fever.value >= 100) {
-                    this.fever.isActive = true;
-                    this.fever.value = 0;
-                    this.fever.timer = 8;
-                    SFX.onFever();
-                }
-            }
-            SFX.onStar();
-        } else if (type === 'ice') this.states.frozen = 4;
-        else if (type === 'reverse') this.states.reverse = 5;
-        else if (type === 'drunk') this.states.drunk = 5;
-        else if (type === 'stun') this.states.stun = 1.5;
-        else if (type === 'shield') this.states.shield = true;
-        else if (type === 'magnet') this.states.magnet = 6;
-
-        // Burst particles
-        for (let i = 0; i < 12; i++) {
-            this.particles.push({
-                x, y,
-                vx: Math.random() * 8 - 4,
-                vy: Math.random() * 8 - 4,
-                life: 1
-            });
-        }
-        if (navigator.vibrate) navigator.vibrate(40);
+        for(let i=0; i<8; i++) Game.particles.push({ x, y, vx: Math.random()*6-3, vy: Math.random()*6-3, life: 1 });
+        if(navigator.vibrate) navigator.vibrate(40);
     },
 
-    endSession() {
-        this.isRunning = false;
-        UI.hide('gameScreen');
-        UI.show('pickScreen');
-        
-        // THUẬT TOÁN CÂN BẰNG LUCK: Max Luck là 30% để Admin không bị phá sản
-        let luck = Math.min(30, this.score / 15);
+    end: () => { 
+        Game.active = false; UI.hide('gameScreen'); UI.show('pickScreen'); 
+        // LUCK BALANCING: Max Luck 30% để bảo vệ ví Admin
+        let luck = Math.min(30, Game.score/15); 
         document.getElementById('luckBonus').innerText = Math.floor(luck);
-        Gacha.renderCards(luck);
+        Gacha.init(luck);
     }
 };
 
-/* ==========================================================================
-   MODULE 4: GACHA SYSTEM (THUẬT TOÁN CÂN BẰNG KINH TẾ)
-   ========================================================================== */
+/* ================= GACHA SYSTEM ================= */
 const Gacha = {
-    renderCards(luck) {
-        const grid = document.getElementById('cardGrid');
-        grid.innerHTML = '';
-        for (let i = 0; i < 9; i++) {
-            const card = document.createElement('div');
-            card.className = 'gacha-card';
-            card.innerHTML = `
-                <div class="gacha-card-inner">
-                    <div class="gacha-face gacha-front">🧧</div>
-                    <div class="gacha-face gacha-back">?</div>
-                </div>
-            `;
-            card.onclick = () => this.drawPrize(card, luck);
-            grid.appendChild(card);
+    init: (luck) => {
+        const grid = document.getElementById('cardGrid'); grid.innerHTML = '';
+        for(let i=0; i<9; i++) { 
+            let c = document.createElement('div'); c.className='card'; 
+            c.innerHTML=`<div class="card-inner"><div class="card-face card-front">🧧</div><div class="card-face card-back">?</div></div>`; 
+            c.onclick=()=>Gacha.pick(c, luck); grid.appendChild(c); 
         }
-        
-        // PHÍM TẮT GIAN LẬN (ADMIN ONLY)
-        window.onkeydown = (e) => {
-            if (e.key === '9') window.forcedMode = 'MAX';
-            if (e.key === '1') window.forcedMode = 'MIN';
-        };
+        window.onkeydown = (e) => { if(e.key==='9') window.cheat='MAX'; if(e.key==='1') window.cheat='MIN'; };
     },
-
-    drawPrize(el, luck) {
-        if (el.classList.contains('is-flipped')) return;
-
-        const config = Data.getConfig();
-        let prize = 10000;
-
-        if (window.forcedMode === 'MAX') {
-            prize = Math.max(...config.map(c => c.amount));
-        } else if (window.forcedMode === 'MIN') {
-            prize = Math.min(...config.map(c => c.amount));
-        } else {
-            let totalWeight = 0;
-            
-            // THUẬT TOÁN BẢO VỆ SÀN (FLOOR SHIELD 55%)
-            // Luck càng cao, trọng số giải to tăng lên nhưng ko bao giờ vượt quá trần an toàn
-            const weightedPool = config.map(item => {
-                let w = item.weight;
-                if (item.amount >= 50000) {
-                    w *= (1 + luck / 18); // Tăng vừa phải
-                } else {
-                    // Giải nhỏ giữ tối thiểu 50% tổng trọng số
-                    w = Math.max(w * 0.5, w * (1 - luck / 100));
-                }
-                totalWeight += w;
-                return { amount: item.amount, currentW: totalWeight };
-            });
-
-            const randomVal = Math.random() * totalWeight;
-            const result = weightedPool.find(p => randomVal <= p.currentW);
-            prize = result ? result.amount : 10000;
-        }
-
-        el.classList.add('is-flipped');
-        el.querySelector('.gacha-back').innerText = (prize / 1000) + 'k';
+    pick: (el, luck) => {
+        if(el.classList.contains('flipped')) return;
+        const cfg = Sys.get(); let prize = 10000;
         
-        setTimeout(() => {
-            UI.hide('pickScreen');
-            UI.show('revealScreen');
-            document.getElementById('prizeAmount').innerText = prize.toLocaleString() + 'đ';
-            Data.addHistory(prize);
+        if(window.cheat === 'MAX') prize = Math.max(...cfg.map(c=>c.a));
+        else if(window.cheat === 'MIN') prize = Math.min(...cfg.map(c=>c.a));
+        else {
+            let total = 0;
+            // BẢO VỆ FLOOR 55% CHO ADMIN
+            let pool = cfg.map(c => { 
+                let w = c.w; 
+                if(c.a >= 50000) w *= (1 + luck/18); 
+                else w = Math.max(w * 0.5, w * (1 - luck/100)); 
+                total += w; return {a: c.a, fw: total}; 
+            });
+            let r = Math.random() * total; prize = pool.find(p => r <= p.fw).a;
+        }
+        
+        el.classList.add('flipped'); el.querySelector('.card-back').innerText = (prize/1000)+'k';
+        setTimeout(() => { 
+            UI.hide('pickScreen'); UI.show('revealScreen'); 
+            document.getElementById('prizeAmount').innerText = prize.toLocaleString() + 'đ'; 
+            Sys.log(prize); 
         }, 1200);
     }
 };
 
-/* ==========================================================================
-   MODULE 5: ADMIN & UI CONTROL
-   ========================================================================== */
+/* ================= ADMIN & UI ================= */
 const Admin = {
-    auth() {
-        const u = document.getElementById('admU').value;
-        const p = document.getElementById('admP').value;
-        // Tài khoản Admin cố định
-        if (u === 'Admin' && p === 'Quoc2007@') {
-            UI.hide('loginModal');
-            this.openPanel();
-        } else {
-            alert('Thông tin đăng nhập sai!');
-        }
+    login: () => { if(document.getElementById('admU').value==='Admin' && document.getElementById('admP').value==='Quoc2007@') { UI.hide('loginModal'); Admin.open(); } },
+    open: () => {
+        UI.show('adminPanel'); document.getElementById('cfgData').value = Sys.get().map(c=>`${c.a}:${c.w}`).join('\n');
+        let h = JSON.parse(localStorage.getItem(Sys.histKey)) || [];
+        let sum = h.reduce((s, x) => s + x.v, 0);
+        document.getElementById('statsSummary').innerHTML = `<div class="stat-card"><span>Tổng tiền phát:</span><b style="color:red">${sum.toLocaleString()}đ</b></div><div class="stat-card"><span>Lượt chơi:</span><b>${h.length}</b></div>`;
     },
-
-    openPanel() {
-        UI.show('adminPanel');
-        const config = Data.getConfig();
-        document.getElementById('cfgData').value = config.map(c => `${c.amount}:${c.weight}`).join('\n');
-        
-        const history = Data.getHistory();
-        const totalPaid = history.reduce((acc, curr) => acc + curr.value, 0);
-        
-        document.getElementById('stTotal').innerText = totalPaid.toLocaleString() + "đ";
-        document.getElementById('stCount').innerText = history.length;
-    },
-
-    saveConfig() {
-        try {
-            const raw = document.getElementById('cfgData').value.trim();
-            const lines = raw.split('\n');
-            const newData = lines.map(line => {
-                const [a, w] = line.split(':');
-                return { amount: parseInt(a), weight: parseInt(w) };
-            });
-            Data.saveConfig(newData);
-            alert('Đã cập nhật cấu hình kinh tế!');
-        } catch(e) {
-            alert('Lỗi định dạng cấu hình!');
-        }
-    },
-
-    wipeData() {
-        if (confirm('Cảnh báo: Bạn muốn xóa sạch lịch sử trúng thưởng?')) {
-            localStorage.removeItem(Data.histKey);
-            this.openPanel();
-        }
-    }
+    save: () => { try { let d = document.getElementById('cfgData').value.trim().split('\n').map(l=>{let [a,w]=l.split(':'); return {a:parseInt(a), w:parseInt(w)}}); Sys.save(d); alert('Đã lưu!'); } catch(e){ alert('Lỗi!'); } },
+    clear: () => { if(confirm('Reset sạch?')) { localStorage.removeItem(Sys.histKey); Admin.open(); } }
 };
 
 const UI = {
     show: (id) => document.getElementById(id).style.display = 'flex',
     hide: (id) => document.getElementById(id).style.display = 'none',
-    toggle: (id, state) => document.getElementById(id).style.display = state ? 'flex' : 'none',
-    
-    updateFX() {
-        // Áp dụng hiệu ứng theo trạng thái
-        document.getElementById('gameScreen').className = Game.states.drunk > 0 ? 'fx-drunk' : '';
+    updateFX: () => {
+        document.getElementById('gameScreen').classList.toggle('fx-drunk-basket', Game.states.drunk > 0);
         document.getElementById('iceOverlay').style.opacity = Game.states.frozen > 0 ? 0.75 : 0;
-        
-        if (Game.states.eclipse > 0) document.getElementById('gameScreen').classList.add('fx-eclipse');
-        else document.getElementById('gameScreen').classList.remove('fx-eclipse');
-        
-        if (Game.fever.isActive) document.getElementById('gameScreen').classList.add('fx-fever-glow');
-        else document.getElementById('gameScreen').classList.remove('fx-fever-glow');
-
-        // Cập nhật Icons trạng thái
-        let h = "";
-        if (Game.states.shield) h += "🛡️ ";
-        if (Game.states.magnet > 0) h += "🧲 ";
-        if (Game.states.reverse > 0) h += "⚡ ";
-        if (Game.states.god > 0) h += "🎋 ";
+        document.getElementById('gameScreen').classList.toggle('fx-eclipse', Game.states.eclipse > 0);
+        document.getElementById('gameScreen').classList.toggle('fx-fever-glow', Game.fever.active);
+        let h = ""; if(Game.states.shield) h+="🛡️"; if(Game.states.magnet>0) h+="🧲"; if(Game.states.reverse>0) h+="⚡";
         document.getElementById('statusIcons').innerText = h;
     }
 };
 
-/* ==========================================================================
-   INPUTS & EVENT LISTENERS
-   ========================================================================== */
-const handleInput = (clientX) => {
-    if (!Game.isRunning || Game.states.stun > 0) return;
-    
-    let moveX = clientX - 50;
-    
-    // Logic Đảo chiều điều khiển
-    if (Game.states.reverse > 0) {
-        moveX = W - clientX - 50;
-    }
-    
-    // Logic Chậm chạp / Lag
-    const lerpSpeed = Game.states.frozen > 0 ? 0.15 : (Game.states.lag > 0 ? 0.04 : 1);
-    Game.player.x += (moveX - Game.player.x) * lerpSpeed;
+const handleMove = (x) => {
+    if(Game.states.stun > 0) return;
+    let moveX = x - 55;
+    if(Game.states.reverse > 0) moveX = W - x - 55;
+    Game.player.x += (moveX - Game.player.x) * (Game.states.frozen > 0 ? 0.15 : (Game.states.lag > 0 ? 0.04 : 1));
 };
 
-canvas.addEventListener('mousemove', e => handleInput(e.clientX));
-canvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    handleInput(e.touches[0].clientX);
-}, { passive: false });
-
-window.onresize = () => {
-    if (Game.isRunning) {
-        W = canvas.width = window.innerWidth;
-        H = canvas.height = window.innerHeight;
-    }
-};
-
-// Khởi tạo ứng dụng
-Data.init();
+canvas.addEventListener('mousemove', e => handleMove(e.clientX));
+canvas.addEventListener('touchmove', e => { e.preventDefault(); handleMove(e.touches[0].clientX); }, {passive:false});
+window.onresize = () => { if(Game.active) Game.start(); };
 </script>
 </body>
 </html>
