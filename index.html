@@ -1,369 +1,690 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lì Xì 33.0 - Precision Engineer Edition</title>
-    <style>
-        :root { 
-            --red: #d32f2f; --gold: #fbc02d; --blue: #0288d1; --white: #ffffff;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; overflow: hidden; background: #111; font-family: sans-serif; touch-action: none; user-select: none; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lì Xì 50.0 - Titan Engine (HCMUTE Edition)</title>
+<style>
+    /* =========================================
+       1. GLOBAL STYLES & VARIABLES
+       ========================================= */
+    :root {
+        --c-red: #d0021b;
+        --c-gold: #f5a623;
+        --c-dark: #101010;
+        --c-light: #ffffff;
+        --c-panel: rgba(255, 255, 255, 0.95);
+        --font-stack: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
 
-        /* MÀN HÌNH GAME SIÊU SÁNG */
-        #gameScreen { 
-            background-color: #ffffff !important; 
-            background-image: radial-gradient(#eee 1px, transparent 1px);
-            background-size: 25px 25px;
-            cursor: none; overflow: hidden; position: relative;
-        }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
 
-        /* HIỆU ỨNG VẬT LÝ SẮC NÉT */
-        .basket-drunk { animation: drunkEffect 0.2s infinite; }
-        @keyframes drunkEffect { 0% { transform: translateX(0); } 50% { transform: translateX(10px) skewX(5deg); } }
-        
-        .basket-lag { transition: left 0.4s ease-out !important; }
+    body, html {
+        margin: 0; padding: 0; width: 100%; height: 100%;
+        overflow: hidden; background-color: var(--c-dark);
+        font-family: var(--font-stack);
+    }
 
-        /* UI SCREENS */
-        .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        #menuScreen { display: flex; background: radial-gradient(circle, #ff5252, #b71c1c); color: white; z-index: 100; }
-        
-        .hud { position: absolute; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; font-size: 2rem; font-weight: 900; color: var(--red); text-shadow: 2px 2px 0 white; z-index: 50; pointer-events: none; }
-        .status-tray { position: absolute; top: 65px; width: 100%; text-align: center; font-size: 1.5rem; z-index: 50; pointer-events: none; }
-        
-        .energy-rail { position: absolute; bottom: 30px; left: 10%; width: 80%; height: 22px; background: #ddd; border: 3px solid var(--red); border-radius: 15px; overflow: hidden; z-index: 50; }
-        .energy-core { width: 0%; height: 100%; background: linear-gradient(90deg, #00e5ff, white); transition: width 0.3s; }
+    /* --- CANVAS LAYER --- */
+    canvas { display: block; width: 100%; height: 100%; }
 
-        /* GACHA */
-        .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
-        .lixi { width: 95px; height: 140px; background: var(--red); border: 4px solid var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; cursor: pointer; transition: 0.3s; color: white; }
-        .lixi.flipped { background: white; color: var(--red); font-size: 1.3rem; font-weight: 900; transform: rotateY(180deg); }
+    /* --- UI LAYERS --- */
+    .ui-layer {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; display: flex; flex-direction: column;
+        justify-content: center; align-items: center; z-index: 10;
+    }
 
-        /* BUTTONS */
-        .btn { background: var(--gold); color: #800; border: none; padding: 18px 55px; font-size: 1.5rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #b79500; margin-top: 20px; }
-        .btn:active { transform: translateY(4px); box-shadow: none; }
-        .admin-btn { position: fixed; top: 15px; right: 15px; opacity: 0.05; font-size: 30px; cursor: pointer; z-index: 1000; }
+    .interactive { pointer-events: auto; }
 
-        /* MODAL */
-        .m-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; }
-        .m-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 1.1rem; }
-    </style>
+    /* --- HUD --- */
+    #hud {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100px;
+        display: flex; justify-content: space-between; padding: 20px 30px;
+        z-index: 20; display: none;
+    }
+    .hud-box {
+        background: rgba(255, 255, 255, 0.9);
+        border: 3px solid var(--c-red);
+        border-radius: 12px; padding: 10px 25px;
+        font-size: 1.5rem; font-weight: 900; color: var(--c-red);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    /* --- MENUS --- */
+    .menu-panel {
+        background: var(--c-panel);
+        border-radius: 20px; padding: 40px; text-align: center;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        border: 4px solid var(--c-gold);
+        max-width: 400px; width: 90%;
+        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .title {
+        font-size: 3.5rem; color: var(--c-red); margin: 0 0 10px 0;
+        text-transform: uppercase; letter-spacing: 2px;
+        text-shadow: 2px 2px 0px var(--c-gold);
+    }
+
+    .subtitle { color: #555; margin-bottom: 30px; font-weight: 500; }
+
+    /* --- BUTTONS --- */
+    .btn {
+        background: var(--c-red); color: white; border: none;
+        padding: 15px 40px; border-radius: 50px; font-size: 1.2rem;
+        font-weight: 800; cursor: pointer; transition: transform 0.1s, background 0.2s;
+        box-shadow: 0 5px 0 #900000; text-transform: uppercase; width: 100%;
+        margin-bottom: 10px;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: none; }
+    .btn-gold { background: var(--c-gold); color: #8a5a00; box-shadow: 0 5px 0 #b37400; }
+    .btn-gold:hover { background: #ffbf40; }
+
+    /* --- GACHA GRID --- */
+    .gacha-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;
+    }
+    .card {
+        aspect-ratio: 2/3; background: var(--c-red);
+        border: 3px solid var(--c-gold); border-radius: 8px;
+        cursor: pointer; position: relative; transition: transform 0.3s;
+        transform-style: preserve-3d;
+    }
+    .card.flipped { transform: rotateY(180deg); background: white; }
+    .card-face {
+        position: absolute; inset: 0; display: flex;
+        justify-content: center; align-items: center;
+        backface-visibility: hidden; font-size: 2rem; font-weight: bold; color: var(--c-gold);
+    }
+    .card-back { transform: rotateY(180deg); color: var(--c-red); font-size: 1.2rem; }
+
+    /* --- UTILS --- */
+    .hidden { display: none !important; }
+    @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    
+    /* --- ADMIN & DEBUG --- */
+    #debug-panel {
+        position: fixed; bottom: 10px; right: 10px;
+        background: rgba(0,0,0,0.8); color: lime;
+        font-family: monospace; padding: 10px;
+        border-radius: 5px; font-size: 10px;
+        pointer-events: none; z-index: 999;
+    }
+    .admin-trigger { position: fixed; top: 10px; right: 10px; width: 30px; height: 30px; z-index: 1000; cursor: pointer; opacity: 0.1; }
+    
+    /* Admin Modal Specifics */
+    textarea.code-editor {
+        width: 100%; height: 150px; background: #222; color: #eee;
+        border: 1px solid #444; padding: 10px; font-family: monospace; margin: 10px 0;
+    }
+</style>
 </head>
 <body>
 
-    <div id="iceFrame" style="position:fixed; inset:0; pointer-events:none; z-index:90; border:0px solid #bbdefb; transition:0.3s;"></div>
+    <canvas id="mainCanvas"></canvas>
 
-    <div id="menuScreen" class="screen">
-        <div class="admin-btn" onclick="UI.m('login', true)">⚙️</div>
-        <div style="font-size: 7rem; margin-bottom: 20px;">🧧</div>
-        <h1 style="margin:0; font-size: 4rem; text-shadow: 3px 3px 0 #000;">LÌ XÌ 33.0</h1>
-        <p>Bản Kỹ Sư Chính Xác - Khắc phục lỗi di chuyển</p>
-        <button class="btn" onclick="Game.init()">BẮT ĐẦU</button>
-    </div>
-
-    <div id="gameScreen" class="screen">
-        <div class="hud">
-            <span>⌛ <span id="timeVal">60</span>s</span>
-            <span>💰 <span id="scoreVal">0</span></span>
+    <div id="ui-layer" class="ui-layer">
+        
+        <div id="menu-panel" class="menu-panel interactive">
+            <h1 class="title">Lì Xì 50.0</h1>
+            <div class="subtitle">TITAN ENGINE • PROCEDURAL GRAPHICS</div>
+            <button class="btn btn-gold" onclick="Engine.start()">KHỞI ĐỘNG</button>
+            <button class="btn" style="background:#333; margin-top:10px; font-size:0.9rem;" onclick="UI.toggleAdmin()">CẤU HÌNH HỆ THỐNG</button>
         </div>
-        <div class="status-tray" id="stIcon"></div>
-        <canvas id="cvs"></canvas>
-        <div class="energy-rail"><div class="energy-core" id="eFill"></div></div>
-    </div>
 
-    <div id="pickScreen" class="screen" style="background: #222;">
-        <h2 style="color: var(--gold); font-size: 2rem;">CHỌN BAO LÌ XÌ</h2>
-        <p style="color:white">May mắn tích lũy: +<span id="luckVal">0</span>%</p>
-        <div class="card-grid" id="cardGrid"></div>
-    </div>
-
-    <div id="resScreen" class="screen" style="background: rgba(0,0,0,0.92);">
-        <div style="background: white; padding: 50px; border-radius: 30px; border: 8px solid var(--gold); text-align: center; color: var(--red);">
-            <h2 style="margin:0">KẾT QUẢ</h2>
-            <div style="font-size: 6rem; margin: 20px 0;">🎉</div>
-            <div id="resPrize" style="font-size: 3.5rem; font-weight: 900;">0đ</div>
-            <button class="btn" onclick="location.reload()">KẾT THÚC</button>
+        <div id="hud" class="interactive">
+            <div class="hud-box">
+                <span style="font-size:1.2rem">⏳</span> <span id="ui-time">60</span>
+            </div>
+            <div class="hud-box">
+                <span style="font-size:1.2rem">💎</span> <span id="ui-score">0</span>
+            </div>
         </div>
+
+        <div id="gacha-panel" class="menu-panel interactive hidden">
+            <h2 style="color:var(--c-gold); margin:0;">VẬN MỆNH</h2>
+            <p>Luck Bonus: +<span id="ui-luck">0</span>%</p>
+            <div class="gacha-grid" id="card-grid"></div>
+        </div>
+
+        <div id="result-panel" class="menu-panel interactive hidden">
+            <h2 style="margin:0; color:var(--c-red)">TỔNG KẾT</h2>
+            <div style="font-size:4rem; margin:20px 0;">🎉</div>
+            <div id="final-prize" style="font-size:2.5rem; font-weight:900; color:var(--c-dark)">0 VNĐ</div>
+            <button class="btn btn-gold" onclick="location.reload()">LƯU DỮ LIỆU</button>
+        </div>
+
+        <div id="admin-panel" class="menu-panel interactive hidden" style="max-width:500px;">
+            <h3>SYSTEM KERNEL</h3>
+            <div id="admin-stats" style="font-size:0.8rem; text-align:left; color:#666; margin-bottom:10px;"></div>
+            <label style="display:block; text-align:left; font-weight:bold;">Probability Matrix (JSON):</label>
+            <textarea id="admin-cfg" class="code-editor"></textarea>
+            <button class="btn" onclick="Admin.save()">INJECT CONFIG</button>
+            <button class="btn" style="background:#555" onclick="UI.toggleAdmin()">ABORT</button>
+        </div>
+
     </div>
 
-    <div id="loginModal" class="m-bg">
-        <div class="m-box" style="text-align: center;">
-            <h3>🔐 ADMIN LOGIN</h3>
-            <input type="text" id="admU" placeholder="Username">
-            <input type="password" id="admP" placeholder="Password">
-            <button class="btn" style="width:100%" onclick="Admin.auth()">ĐĂNG NHẬP</button>
-            <button class="btn" style="width:100%; background:#eee; margin-top:10px;" onclick="UI.m('login', false)">HUỶ</button>
-        </div>
-    </div>
-
-    <div id="panelModal" class="m-bg">
-        <div class="m-box">
-            <h3 style="text-align:center; border-bottom: 3px solid var(--gold); padding-bottom: 10px;">📊 DASHBOARD</h3>
-            <div id="stats" style="background:#f9f9f9; padding:15px; margin-bottom:10px; border-radius:10px; font-size:0.9rem;"></div>
-            <label>Cấu hình 10 mệnh giá (Tiền:Trọng số):</label>
-            <textarea id="cfgInput" rows="10"></textarea>
-            <button class="btn" style="width:100%" onclick="Admin.save()">LƯU CÀI ĐẶT</button>
-            <button class="btn" style="width:100%; background:#f44336; color:white; margin-top:10px;" onclick="Admin.wipe()">XÓA DỮ LIỆU</button>
-            <button class="btn" style="width:100%; background:#999; color:white; margin-top:10px;" onclick="UI.m('panel', false)">THOÁT</button>
-        </div>
-    </div>
+    <div id="debug-panel">FPS: 60 | ENTITIES: 0</div>
 
 <script>
-/* ================= 1. DỮ LIỆU & LOGIC KINH TẾ ================= */
-const Data = {
-    kC: 'lx33_cfg', kH: 'lx33_hist',
-    def: [
-        {v:10000, w:250}, {v:20000, w:180}, {v:30000, w:120}, {v:40000, w:80},
-        {v:50000, w:40}, {v:60000, w:20}, {v:70000, w:10}, {v:80000, w:5},
-        {v:90000, w:2}, {v:100000, w:1}
-    ],
-    load() { return JSON.parse(localStorage.getItem(this.kC)) || this.def; },
-    save(d) { localStorage.setItem(this.kC, JSON.stringify(d)); },
-    hist() { return JSON.parse(localStorage.getItem(this.kH)) || []; },
-    add(val) { 
-        let h = this.hist(); h.push({t: new Date().toLocaleTimeString(), v: val}); 
-        localStorage.setItem(this.kH, JSON.stringify(h.slice(-300))); 
-    }
+/**
+ * ============================================================================
+ * LÌ XÌ 50.0 - THE TITAN ENGINE
+ * Architecture: Component-Entity-System (Lite)
+ * Author: HCMUTE IT Student
+ * ============================================================================
+ */
+
+/* --------------------------------------------------------------------------
+   CORE MATH & UTILITIES (VECTOR2D)
+   -------------------------------------------------------------------------- */
+class Vec2 {
+    constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+    add(v) { this.x += v.x; this.y += v.y; return this; }
+    sub(v) { this.x -= v.x; this.y -= v.y; return this; }
+    mult(n) { this.x *= n; this.y *= n; return this; }
+    mag() { return Math.sqrt(this.x*this.x + this.y*this.y); }
+    dist(v) { return Math.sqrt((this.x-v.x)**2 + (this.y-v.y)**2); }
+    copy() { return new Vec2(this.x, this.y); }
+    static random(min, max) { return new Vec2(Math.random()*(max-min)+min, Math.random()*(max-min)+min); }
+}
+
+const Utils = {
+    rand: (min, max) => Math.random() * (max - min) + min,
+    clamp: (val, min, max) => Math.max(min, Math.min(max, val)),
+    lerp: (a, b, t) => a + (b - a) * t
 };
 
-/* ================= 2. ÂM THANH ================= */
-const Sound = {
+/* --------------------------------------------------------------------------
+   AUDIO SYNTHESIZER (NO EXTERNAL FILES)
+   -------------------------------------------------------------------------- */
+const AudioCore = {
     ctx: null,
-    init() { if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-    play(f, t='sine', d=0.1) {
-        if(!this.ctx) return;
-        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
-        o.type = t; o.frequency.value = f;
-        g.gain.setValueAtTime(0.1, this.ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + d);
-        o.connect(g); g.connect(this.ctx.destination);
-        o.start(); o.stop(this.ctx.currentTime + d);
-    }
-};
-
-/* ================= 3. ENGINE TRÒ CHƠI ================= */
-const cvs = document.getElementById('cvs');
-const ctx = cvs.getContext('2d');
-let W, H;
-
-const Game = {
-    running: false, score: 0, time: 60, items: [], parts: [],
-    player: { x: 0, y: 0, w: 110, h: 100 },
-    fever: { on: false, val: 0, tick: 0 },
-    // KHÔI PHỤC ĐẦY ĐỦ 30 VẬT PHẨM LOGIC
-    st: { shield: false, frozen: 0, reverse: 0, magnet: 0, drunk: 0, stun: 0, god: 0, blackhole: 0, double: 0, lag: 0, giant: 0 },
-
+    masterGain: null,
+    
     init() {
-        Sound.init(); 
-        W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight;
-        this.player.x = W/2 - 55; this.player.y = H - 150;
-        this.running = true; this.score = 0; this.time = 60;
-        this.items = []; this.parts = [];
-        this.fever = { on: false, val: 0, tick: 0 };
-        for(let k in this.st) this.st[k] = 0;
-        
-        UI.scr('gameScreen');
-        this.loop(); this.spawn(); this.clock();
+        if (this.ctx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.3; // Master volume
+        this.masterGain.connect(this.ctx.destination);
     },
 
-    clock() {
-        let t = setInterval(() => {
-            if(!this.running) return clearInterval(t);
-            this.time--; document.getElementById('timeVal').innerText = this.time;
-            for(let k in this.st) if(typeof this.st[k] === 'number' && this.st[k] > 0) this.st[k]--;
-            if(this.fever.on) { this.fever.tick--; if(this.fever.tick <= 0) this.fever.on = false; }
-            UI.upd();
-            if(this.time <= 0) this.over();
+    playTone(freq, type, duration, vol = 1) {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        
+        // Envelope: ADSR (Simplified)
+        gain.gain.setValueAtTime(0, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 0.05); // Attack
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration); // Decay
+        
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+    },
+
+    // Sound Presets
+    sfx: {
+        coin: () => {
+            AudioCore.playTone(1200, 'sine', 0.1);
+            setTimeout(() => AudioCore.playTone(1800, 'sine', 0.2), 50);
+        },
+        bomb: () => {
+            AudioCore.playTone(100, 'sawtooth', 0.4, 0.5);
+            AudioCore.playTone(50, 'square', 0.4, 0.5);
+        },
+        star: () => {
+            AudioCore.playTone(600, 'triangle', 0.1);
+            setTimeout(() => AudioCore.playTone(900, 'triangle', 0.1), 100);
+            setTimeout(() => AudioCore.playTone(1200, 'triangle', 0.2), 200);
+        },
+        ui: () => AudioCore.playTone(800, 'sine', 0.05, 0.2)
+    }
+};
+
+/* --------------------------------------------------------------------------
+   PROCEDURAL GRAPHICS RENDERER (VẼ BẰNG CODE)
+   -------------------------------------------------------------------------- */
+const Graphics = {
+    // Vẽ Bao Lì Xì (Vector)
+    drawEnvelope(ctx, x, y, size) {
+        const w = size; const h = size * 1.4;
+        ctx.save();
+        ctx.translate(x, y);
+        
+        // Body
+        ctx.fillStyle = "#d0021b";
+        ctx.beginPath();
+        ctx.roundRect(-w/2, -h/2, w, h, 8);
+        ctx.fill();
+        ctx.lineWidth = 2; ctx.strokeStyle = "#f5a623"; ctx.stroke();
+
+        // Flap (Nắp bao)
+        ctx.beginPath();
+        ctx.moveTo(-w/2, -h/2 + 20);
+        ctx.quadraticCurveTo(0, 0, w/2, -h/2 + 20);
+        ctx.strokeStyle = "#ffcc00"; ctx.stroke();
+
+        // Gold Circle
+        ctx.fillStyle = "#f5a623";
+        ctx.beginPath(); ctx.arc(0, -h/6, w/6, 0, Math.PI*2); ctx.fill();
+        
+        // Text "LỘC" (Procedural Text)
+        ctx.fillStyle = "#d0021b"; ctx.font = `bold ${size/3}px Arial`;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText("🧧", 0, -h/6 + 2);
+
+        ctx.restore();
+    },
+
+    // Vẽ Đồng Tiền (Vector)
+    drawCoin(ctx, x, y, size) {
+        ctx.save();
+        ctx.translate(x, y);
+        // Outer
+        ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI*2);
+        ctx.fillStyle = "#ffd700"; ctx.fill();
+        ctx.strokeStyle = "#daa520"; ctx.lineWidth = 2; ctx.stroke();
+        // Inner Square
+        ctx.fillStyle = "#e59400";
+        ctx.fillRect(-size/6, -size/6, size/3, size/3);
+        ctx.restore();
+    },
+
+    // Vẽ Bom (Vector)
+    drawBomb(ctx, x, y, size) {
+        ctx.save();
+        ctx.translate(x, y);
+        // Body
+        ctx.beginPath(); ctx.arc(0, 5, size/2, 0, Math.PI*2);
+        ctx.fillStyle = "#333"; ctx.fill();
+        // Fuse
+        ctx.beginPath(); ctx.moveTo(0, -size/2); ctx.quadraticCurveTo(5, -size, 10, -size/2 - 5);
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+        // Spark
+        ctx.fillStyle = "#f00"; ctx.beginPath(); ctx.arc(10, -size/2 - 5, 3, 0, Math.PI*2); ctx.fill();
+        // Skull Icon (Simple dots)
+        ctx.fillStyle = "#fff";
+        ctx.beginPath(); ctx.arc(-5, 5, 3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(5, 5, 3, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+    },
+
+    // Vẽ Giỏ Hứng (Player)
+    drawBasket(ctx, x, y, w, h) {
+        ctx.save();
+        ctx.translate(x, y);
+        // Basket body
+        ctx.fillStyle = "#8d6e63";
+        ctx.beginPath();
+        ctx.moveTo(-w/2, -h/2);
+        ctx.lineTo(w/2, -h/2);
+        ctx.lineTo(w/3, h/2);
+        ctx.lineTo(-w/3, h/2);
+        ctx.closePath();
+        ctx.fill();
+        // Weave pattern lines
+        ctx.strokeStyle = "#5d4037"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(-w/2, -h/6); ctx.lineTo(w/2, -h/6); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-w/2.5, h/6); ctx.lineTo(w/2.5, h/6); ctx.stroke();
+        ctx.restore();
+    }
+};
+
+/* --------------------------------------------------------------------------
+   GAME LOGIC: ENTITIES & PHYSICS
+   -------------------------------------------------------------------------- */
+class Particle {
+    constructor(x, y, color) {
+        this.pos = new Vec2(x, y);
+        this.vel = Vec2.random(-3, 3);
+        this.life = 1.0;
+        this.decay = Utils.rand(0.02, 0.05);
+        this.color = color;
+        this.size = Utils.rand(3, 6);
+    }
+    update() {
+        this.pos.add(this.vel);
+        this.vel.y += 0.1; // Gravity
+        this.life -= this.decay;
+    }
+    draw(ctx) {
+        if(this.life <= 0) return;
+        ctx.globalAlpha = this.life;
+        ctx.fillStyle = this.color;
+        ctx.beginPath(); ctx.arc(this.pos.x, this.pos.y, this.size, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+    }
+}
+
+class FallingItem {
+    constructor(w, h) {
+        this.pos = new Vec2(Utils.rand(20, w-20), -50);
+        this.vel = new Vec2(0, Utils.rand(3, 6));
+        this.type = Math.random(); 
+        // 0-0.2: Bomb, 0.2-0.8: Coin, 0.8-1.0: Envelope
+        this.size = 50;
+        this.angle = 0;
+        this.rotSpeed = Utils.rand(-0.05, 0.05);
+        this.dead = false;
+    }
+    update(dt) {
+        this.pos.add(this.vel);
+        this.angle += this.rotSpeed;
+        if (this.pos.y > window.innerHeight + 50) this.dead = true;
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.pos.x, this.pos.y);
+        ctx.rotate(this.angle);
+        if (this.type < 0.2) Graphics.drawBomb(ctx, 0, 0, this.size);
+        else if (this.type < 0.8) Graphics.drawCoin(ctx, 0, 0, this.size);
+        else Graphics.drawEnvelope(ctx, 0, 0, this.size);
+        ctx.restore();
+    }
+}
+
+/* --------------------------------------------------------------------------
+   ENGINE CORE: STATE MACHINE
+   -------------------------------------------------------------------------- */
+const Engine = {
+    canvas: null,
+    ctx: null,
+    width: 0, height: 0,
+    running: false,
+    
+    player: { pos: new Vec2(0,0), w: 100, h: 60, score: 0 },
+    items: [],
+    particles: [],
+    
+    timeLeft: 60,
+    lastTime: 0,
+    
+    // Config Data (Injectable)
+    config: {
+        spawnRate: 600,
+        gachaTable: [
+            {v:10000, w:250}, {v:20000, w:180}, {v:30000, w:120}, 
+            {v:40000, w:70}, {v:50000, w:40}, {v:100000, w:1}
+        ]
+    },
+
+    init() {
+        this.canvas = document.getElementById('mainCanvas');
+        this.ctx = this.canvas.getContext('2d', { alpha: false }); // Optimize
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        
+        // Input Handling (Pointer Lock concept without locking)
+        this.canvas.addEventListener('mousemove', e => this.handleInput(e.clientX));
+        this.canvas.addEventListener('touchmove', e => { e.preventDefault(); this.handleInput(e.touches[0].clientX); }, {passive:false});
+        
+        Data.load(); // Load data from storage
+    },
+
+    resize() {
+        this.width = this.canvas.width = window.innerWidth;
+        this.height = this.canvas.height = window.innerHeight;
+        this.player.pos.y = this.height - 100;
+        this.player.pos.x = this.width / 2;
+    },
+
+    start() {
+        AudioCore.init();
+        AudioCore.playTone(440, 'sine', 0.1);
+        
+        this.running = true;
+        this.score = 0;
+        this.time = 60;
+        this.items = [];
+        this.particles = [];
+        
+        UI.showScreen('gameScreen');
+        this.lastTime = performance.now();
+        this.loop(this.lastTime);
+        this.spawnLoop();
+        this.timerLoop();
+    },
+
+    handleInput(x) {
+        if (!this.running) return;
+        this.player.pos.x = Utils.clamp(x, this.player.w/2, this.width - this.player.w/2);
+    },
+
+    spawnLoop() {
+        if (!this.running) return;
+        this.items.push(new FallingItem(this.width, this.height));
+        setTimeout(() => this.spawnLoop(), this.config.spawnRate);
+    },
+
+    timerLoop() {
+        const t = setInterval(() => {
+            if (!this.running) { clearInterval(t); return; }
+            this.time--;
+            document.getElementById('ui-time').innerText = this.time;
+            if (this.time <= 0) this.gameOver();
         }, 1000);
     },
 
-    spawn() {
-        if(!this.running) return;
-        if(this.items.length < 20) {
-            let r = Math.random(), type = 'coin';
-            // FULL POOL VẬT PHẨM
-            if(r < 0.12) type = 'bomb';
-            else if(r < 0.22) type = 'star';
-            else if(r < 0.24) type = 'ice'; else if(r < 0.26) type = 'reverse';
-            else if(r < 0.28) type = 'drunk'; else if(r < 0.30) type = 'stun';
-            else if(r < 0.32) type = 'blackhole'; else if(r < 0.34) type = 'shield';
-            else if(r < 0.36) type = 'magnet'; else if(r < 0.37) type = 'god';
-            else if(r < 0.38) type = 'double'; else if(r < 0.39) type = 'giant';
+    loop(timestamp) {
+        if (!this.running) return;
+        const dt = (timestamp - this.lastTime) / 1000;
+        this.lastTime = timestamp;
 
-            if(this.fever.on) type = (Math.random() < 0.4) ? 'star' : 'coin';
-
-            this.items.push({
-                x: Math.random()*(W-60), y: -80, type,
-                spd: (4 + Math.random()*3) * (1 + (60 - this.time)/220),
-                p: Math.random()*Math.PI*2
-            });
-        }
-        setTimeout(() => this.spawn(), this.fever.on ? 180 : 800);
-    },
-
-    loop() {
-        if(!this.running) return;
-        ctx.clearRect(0, 0, W, H);
-
-        // PARTICLES
-        for(let i=this.parts.length-1; i>=0; i--) {
-            let p = this.parts[i]; p.y += p.vy; p.life -= 0.05;
-            if(p.life <= 0) this.parts.splice(i,1);
-            else { ctx.fillStyle=`rgba(211,47,47,${p.life})`; ctx.fillRect(p.x, p.y, 6, 6); }
-        }
-
-        // PLAYER
-        let pW = this.st.giant > 0 ? 170 : 110;
-        let ico = this.fever.on ? "😎" : (this.st.frozen > 0 ? "🥶" : (this.st.stun > 0 ? "😵" : "🧺"));
-        ctx.font = `${pW}px Arial`; ctx.fillStyle = "#000";
-        // Hiệu ứng Drunk
-        let dx = this.st.drunk > 0 ? (Math.random()*16 - 8) : 0;
-        ctx.fillText(ico, this.player.x + dx, H - 60);
-
-        // ITEMS
-        for(let i=this.items.length-1; i>=0; i--) {
-            let it = this.items[i];
-            let bad = ['bomb','ice','reverse','drunk','stun','blackhole'].includes(it.type);
-
-            if(it.type === 'blackhole') {
-                it.y += it.spd;
-                this.items.forEach(o => { if(o !== it && Math.hypot(it.x-o.x, it.y-o.y) < 160) { o.x += (it.x-o.x)*0.12; o.y += (it.y-o.y)*0.12; } });
-            } else if((this.fever.on || this.st.magnet > 0) && !bad) {
-                it.x += (this.player.x + pW/2 - 25 - it.x) * 0.16; it.y += (H - 100 - it.y) * 0.16;
-            } else {
-                it.y += this.st.frozen > 0 ? it.spd * 0.2 : it.spd;
+        // --- UPDATE ---
+        // Update Items
+        for (let i = this.items.length - 1; i >= 0; i--) {
+            const it = this.items[i];
+            it.update(dt);
+            
+            // AABB Collision Detection
+            if (Math.abs(it.pos.x - this.player.pos.x) < (this.player.w/2 + it.size/2) &&
+                Math.abs(it.pos.y - this.player.pos.y) < (this.player.h/2 + it.size/2)) {
+                
+                this.handleCollision(it);
+                it.dead = true;
             }
-
-            ctx.font = "52px Arial";
-            let m = {coin:'🧧', bomb:'💣', star:'🌟', ice:'❄️', reverse:'⚡', drunk:'🤡', shield:'🛡️', magnet:'🧲', god:'🎋', blackhole:'🕳️', double:'x2', giant:'🥖'};
-            ctx.fillText(m[it.type] || '🧧', it.x, it.y);
-
-            if(it.y > H-140 && it.y < H-40 && it.x > this.player.x-40 && it.x < this.player.x+pW) {
-                this.hit(it.type, it.x, it.y); this.items.splice(i,1);
-            } else if(it.y > H) this.items.splice(i,1);
+            
+            if (it.dead) this.items.splice(i, 1);
         }
 
-        document.getElementById('scoreVal').innerText = Math.floor(this.score);
-        document.getElementById('eFill').style.width = this.fever.on ? "100%" : this.fever.val + "%";
-        requestAnimationFrame(() => this.loop());
-    },
+        // Update Particles
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.update();
+            if (p.life <= 0) this.particles.splice(i, 1);
+        }
 
-    hit(t, x, y) {
-        let bad = ['bomb','ice','reverse','drunk','stun','blackhole'].includes(t);
-        if(bad && (this.st.god > 0)) return;
-        if(bad && this.st.shield) { this.st.shield = false; return; }
-
-        for(let k=0; k<8; k++) this.parts.push({x:x, y:y, vy: Math.random()*-6, life:1});
-
-        if(t === 'bomb') {
-            this.score = Math.max(0, this.score - 10); this.fever.val = Math.max(0, this.fever.val - 45);
-            Sound.play(120, 'sawtooth', 0.4);
-        } else if(t === 'coin') {
-            this.score += 1 * (this.st.double > 0 ? 2 : 1); Sound.play(1100);
-        } else if(t === 'star') {
-            if(!this.fever.on) {
-                this.fever.val += 20;
-                if(this.fever.val >= 100) { this.fever.on = true; this.fever.val = 0; this.fever.tick = 8; Sound.play(600, 'square', 0.5); }
-            }
-            Sound.play(1300);
-        } else if(t === 'ice') this.st.frozen = 4;
-        else if(t === 'reverse') this.st.reverse = 5;
-        else if(t === 'drunk') this.st.drunk = 5;
-        else if(t === 'stun') this.st.stun = 1.5;
-        else if(t === 'shield') this.st.shield = true;
-        else if(t === 'magnet') this.st.magnet = 6;
-        else if(t === 'god') this.st.god = 6;
-        else if(t === 'double') this.st.double = 10;
-        else if(t === 'giant') this.st.giant = 8;
+        // --- RENDER ---
+        this.ctx.fillStyle = "#fff";
+        this.ctx.fillRect(0, 0, this.width, this.height);
         
-        if(navigator.vibrate) navigator.vibrate(50);
+        // Grid background procedural
+        this.ctx.strokeStyle = "#eee"; this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        for(let x=0; x<this.width; x+=40) { this.ctx.moveTo(x,0); this.ctx.lineTo(x,this.height); }
+        for(let y=0; y<this.height; y+=40) { this.ctx.moveTo(0,y); this.ctx.lineTo(this.width,y); }
+        this.ctx.stroke();
+
+        // Draw Player
+        Graphics.drawBasket(this.ctx, this.player.pos.x, this.player.pos.y, this.player.w, this.player.h);
+
+        // Draw Items
+        this.items.forEach(it => it.draw(this.ctx));
+
+        // Draw Particles
+        this.particles.forEach(p => p.draw(this.ctx));
+
+        // Debug Info
+        document.getElementById('debug-panel').innerText = `FPS: ${Math.round(1/dt)} | ENT: ${this.items.length}`;
+
+        requestAnimationFrame((t) => this.loop(t));
     },
 
-    over() { this.running = false; UI.scr('pickScreen'); let l = Math.min(30, this.score/18); document.getElementById('luckVal').innerText = Math.floor(l); Gacha.init(l); }
-};
-
-/* ================= 4. GACHA ================= */
-const Gacha = {
-    init(luck) {
-        const g = document.getElementById('cardGrid'); g.innerHTML = '';
-        for(let i=0; i<9; i++) {
-            let c = document.createElement('div'); c.className = 'lixi'; c.innerText = '🧧';
-            c.onclick = () => {
-                if(c.classList.contains('flipped')) return;
-                let p = this.roll(luck); c.className = 'lixi flipped'; c.innerText = (p/1000) + 'k';
-                setTimeout(() => { UI.scr('resScreen'); document.getElementById('resPrize').innerText = p.toLocaleString() + 'đ'; Data.add(p); }, 1100);
-            };
-            g.appendChild(c);
+    handleCollision(item) {
+        // Spawn Particles
+        for(let i=0; i<8; i++) {
+            this.particles.push(new Particle(item.pos.x, item.pos.y, item.type < 0.2 ? '#333' : '#f5a623'));
         }
-        window.onkeydown = (e) => { if(e.key=='9') window.f='max'; if(e.key=='1') window.f='min'; };
+
+        if (item.type < 0.2) {
+            // Bomb
+            this.score = Math.max(0, this.score - 5);
+            AudioCore.sfx.bomb();
+            if (navigator.vibrate) navigator.vibrate(200);
+        } else {
+            // Good Item
+            this.score += (item.type > 0.8) ? 3 : 1;
+            AudioCore.sfx.coin();
+        }
+        document.getElementById('ui-score').innerText = this.score;
     },
-    roll(luck) {
-        const cfg = Data.load();
-        if(window.f == 'max') return Math.max(...cfg.map(i=>i.v));
-        if(window.f == 'min') return Math.min(...cfg.map(i=>i.v));
-        let tot = 0;
-        let pool = cfg.map(i => {
-            let w = i.w;
-            if(i.v >= 50000) w *= (1 + luck/15);
-            else w = Math.max(w * 0.5, w * (1 - luck/100)); // Floor 50%
-            tot += w; return {v: i.v, cw: tot};
-        });
-        let r = Math.random() * tot; return pool.find(i => r <= i.cw).v;
+
+    gameOver() {
+        this.running = false;
+        UI.showScreen('gacha-panel');
+        // Luck Algo: Cap at 30%
+        let luck = Math.min(30, Math.floor(this.score / 5));
+        document.getElementById('ui-luck').innerText = luck;
+        Gacha.init(luck);
     }
 };
 
-/* ================= 5. ADMIN & UI ================= */
-const Admin = {
-    auth() {
-        // FIX: Thêm .trim() để tránh lỗi đăng nhập
-        let u = document.getElementById('admU').value.trim();
-        let p = document.getElementById('admP').value.trim();
-        if(u === 'Admin' && p === 'Quoc2007@') { UI.m('login', false); UI.m('panel', true); this.load(); }
-        else alert('Sai tài khoản hoặc mật khẩu!');
-    },
+/* --------------------------------------------------------------------------
+   DATA & ADMIN SYSTEM
+   -------------------------------------------------------------------------- */
+const Data = {
+    keyCfg: 'titan_cfg', keyHist: 'titan_hist',
     load() {
-        let cfg = Data.load(); document.getElementById('cfgInput').value = cfg.map(i => `${i.v}:${i.w}`).join('\n');
-        let h = Data.hist(); let s = h.reduce((a,b)=>a+b.v, 0);
-        document.getElementById('stats').innerHTML = `Tổng chi: <b style="color:red">${s.toLocaleString()}đ</b> | Lượt chơi: ${h.length}`;
+        const s = localStorage.getItem(this.keyCfg);
+        if (s) Engine.config.gachaTable = JSON.parse(s);
+    },
+    save(cfg) {
+        localStorage.setItem(this.keyCfg, JSON.stringify(cfg));
+        Engine.config.gachaTable = cfg;
+    },
+    logHistory(val) {
+        let h = JSON.parse(localStorage.getItem(this.keyHist) || "[]");
+        h.push({d: new Date().toLocaleString(), v: val});
+        localStorage.setItem(this.keyHist, JSON.stringify(h.slice(-100)));
+    }
+};
+
+const Admin = {
+    login() {
+        const u = document.getElementById('admU').value.trim();
+        const p = document.getElementById('admP').value.trim();
+        if(u === 'Admin' && p === 'Quoc2007@') {
+            UI.toggleModal('login', false);
+            UI.toggleAdmin(true);
+        } else alert("ACCESS DENIED");
     },
     save() {
         try {
-            let d = document.getElementById('cfgInput').value.trim().split('\n').map(l => { let p = l.split(':'); return {v:parseInt(p[0]), w:parseInt(p[1])}; });
-            Data.save(d); alert('Đã lưu!');
-        } catch(e) { alert('Lỗi định dạng!'); }
-    },
-    wipe() { if(confirm('Reset hết?')) { localStorage.removeItem(Data.kH); this.load(); } }
-};
-
-const UI = {
-    scr(id) { ['menuScreen','gameScreen','pickScreen','resScreen'].forEach(s => document.getElementById(s).style.display = 'none'); document.getElementById(id).style.display = 'flex'; },
-    m(n, s) { document.getElementById(n+'Modal').style.display = s ? 'flex' : 'none'; },
-    upd() {
-        document.getElementById('iceFrame').style.borderWidth = Game.st.frozen > 0 ? '25px' : '0px';
-        let i = "";
-        if(Game.st.shield) i+="🛡️ "; if(Game.st.magnet>0) i+="🧲 "; 
-        if(Game.st.god>0) i+="🎋 "; if(Game.st.double>0) i+="x2 ";
-        if(Game.st.reverse>0) i+="⚡ "; if(Game.st.giant>0) i+="🥖 ";
-        document.getElementById('stIcon').innerText = i;
+            const d = JSON.parse(document.getElementById('admin-cfg').value);
+            Data.save(d); alert("SYSTEM UPDATED");
+        } catch(e) { alert("SYNTAX ERROR"); }
     }
 };
 
-/* FIX MOVEMENT: Canvas listener target fixed */
-const handleInput = (clientX) => {
-    if(!Game.running || Game.st.stun > 0) return;
-    let targetX = clientX - 55;
-    if(Game.st.reverse > 0) targetX = W - clientX - 55;
-    let spd = Game.st.frozen > 0 ? 0.18 : (Game.st.lag > 0 ? 0.04 : 1);
-    Game.player.x += (targetX - Game.player.x) * spd;
+/* --------------------------------------------------------------------------
+   GACHA & UI LOGIC
+   -------------------------------------------------------------------------- */
+const Gacha = {
+    init(luck) {
+        const grid = document.getElementById('card-grid');
+        grid.innerHTML = '';
+        for(let i=0; i<9; i++) {
+            const c = document.createElement('div');
+            c.className = 'card';
+            c.innerHTML = `<div class="card-face">🧧</div><div class="card-face card-back">?</div>`;
+            c.onclick = () => this.roll(c, luck);
+            grid.appendChild(c);
+        }
+        // Cheat codes
+        window.onkeydown = e => { if(e.key=='9') this.cheat='MAX'; if(e.key=='1') this.cheat='MIN'; };
+    },
+    roll(el, luck) {
+        if(el.classList.contains('flipped')) return;
+        
+        const table = Engine.config.gachaTable;
+        let prize = 10000;
+
+        if(this.cheat === 'MAX') prize = Math.max(...table.map(i=>i.v));
+        else if(this.cheat === 'MIN') prize = Math.min(...table.map(i=>i.v));
+        else {
+            // Weighted Random with Luck Factor (Floor 60%)
+            let totalW = 0;
+            const pool = table.map(i => {
+                let w = i.w;
+                if(i.v >= 50000) w *= (1 + luck/20); // Boost high prize
+                else w = Math.max(w * 0.6, w * (1 - luck/100)); // Protect low prize
+                totalW += w;
+                return {v: i.v, cw: totalW};
+            });
+            const r = Math.random() * totalW;
+            prize = pool.find(i => r <= i.cw).v;
+        }
+
+        el.classList.add('flipped');
+        el.querySelector('.card-back').innerText = (prize/1000) + 'k';
+        
+        setTimeout(() => {
+            UI.showScreen('result-panel');
+            document.getElementById('final-prize').innerText = prize.toLocaleString() + ' VNĐ';
+            Data.logHistory(prize);
+        }, 1000);
+    }
 };
 
-// Sửa từ 'canvas' thành 'cvs' để tránh lỗi ReferenceError
-cvs.addEventListener('mousemove', e => handleInput(e.clientX));
-cvs.addEventListener('touchmove', e => { e.preventDefault(); handleInput(e.touches[0].clientX); }, {passive:false});
+const UI = {
+    showScreen(id) {
+        document.querySelectorAll('.menu-panel, #hud').forEach(el => el.classList.add('hidden'));
+        document.getElementById('menuScreen').style.display = 'none';
+        
+        if (id === 'gameScreen') {
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('hud').style.display = 'flex';
+        } else {
+            document.getElementById(id).classList.remove('hidden');
+            // Show overlay background for modals
+            if (id !== 'gameScreen') document.getElementById('ui-layer').style.background = "rgba(0,0,0,0.8)";
+        }
+    },
+    toggleModal(name, show) {
+        const el = document.getElementById(name+'Modal');
+        el.style.display = show ? 'flex' : 'none';
+    },
+    toggleAdmin(forceShow = false) {
+        const el = document.getElementById('admin-panel');
+        const isHidden = el.classList.contains('hidden');
+        if (isHidden || forceShow) {
+            el.classList.remove('hidden');
+            document.getElementById('admin-cfg').value = JSON.stringify(Engine.config.gachaTable, null, 2);
+            // Load stats
+            const h = JSON.parse(localStorage.getItem(Data.keyHist)||'[]');
+            const sum = h.reduce((a,b)=>a+b.v,0);
+            document.getElementById('admin-stats').innerText = `TOTAL OUT: ${sum.toLocaleString()} | PLAYS: ${h.length}`;
+        } else {
+            el.classList.add('hidden');
+        }
+    }
+};
 
-window.onresize = () => { if(Game.running) Game.init(); };
+// BOOTSTRAP
+window.onload = () => Engine.init();
+
 </script>
 </body>
 </html>
