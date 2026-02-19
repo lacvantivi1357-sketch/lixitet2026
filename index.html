@@ -3,45 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Lì Xì 130.0 - Neural Overdrive (Object Pooling)</title>
+<title>Lì Xì 200.0 - Lunar Odyssey Engine</title>
 <style>
     /* =========================================
-       1. SYSTEM ARCHITECTURE (CORE CSS)
+       1. CORE DESIGN (ULTRA TET STYLE)
        ========================================= */
     :root {
-        --n-blue: #00f2ea; --n-red: #ff0050; --n-gold: #ffd700;
-        --bg: #010103; --font: 'Fira Code', monospace;
+        --n-red: #d0021b; --n-gold: #ffd700; --n-blue: #00f2ea;
+        --n-purple: #bc13fe; --n-green: #39ff14;
+        --font: 'Segoe UI', system-ui, sans-serif;
     }
 
     * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--font); color: white; }
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: var(--font); color: white; }
     canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 
-    /* UI LAYER */
-    #ui-kernel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; }
+    /* UI LAYER ARCHITECTURE */
+    #ui-portal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
     .interactive { pointer-events: auto !important; }
 
     /* HUD SYSTEM */
-    #hud { display: flex; justify-content: space-between; padding: 25px; width: 100%; position: absolute; top: 0; z-index: 20; }
-    .hud-cell { border-left: 3px solid var(--n-blue); padding: 5px 15px; background: rgba(0, 30, 50, 0.3); backdrop-filter: blur(5px); }
-    .hud-val { font-size: 1.8rem; font-weight: bold; text-shadow: 0 0 10px var(--n-blue); }
+    #hud { display: flex; justify-content: space-between; padding: 20px; width: 100%; position: absolute; top: 0; z-index: 20; opacity: 0; transition: 1s; }
+    .hud-card { 
+        border: 2px solid var(--n-gold); padding: 8px 20px; 
+        background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
+        text-align: center; border-radius: 12px;
+    }
+    .hud-label { font-size: 0.6rem; color: var(--n-gold); text-transform: uppercase; letter-spacing: 2px; }
+    .hud-val { font-size: 1.8rem; font-weight: bold; color: #fff; }
 
-    /* OVERLAYS */
+    /* STATUS EFFECTS TRAY */
+    #status-effects {
+        position: absolute; top: 100px; width: 100%; display: flex;
+        justify-content: center; gap: 10px; pointer-events: none; z-index: 20;
+    }
+    .effect-icon {
+        width: 40px; height: 40px; background: rgba(0,0,0,0.5);
+        border: 2px solid var(--n-gold); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; animation: pulse 1s infinite;
+    }
+
+    /* MODALS */
     .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; backdrop-filter: blur(20px); z-index: 100; }
-    .modal { background: rgba(10, 15, 25, 0.98); border: 1px solid var(--n-blue); width: 90%; max-width: 500px; padding: 30px; box-shadow: 0 0 100px rgba(0, 242, 234, 0.1); }
+    .modal { background: rgba(20, 0, 0, 0.98); border: 2px solid var(--n-gold); width: 92%; max-width: 450px; padding: 40px; border-radius: 20px; text-align: center; }
     
-    /* BUTTONS */
-    .btn-x { background: transparent; border: 1px solid var(--n-blue); color: var(--n-blue); padding: 16px; cursor: pointer; font-family: var(--font); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; width: 100%; margin-top: 10px; }
-    .btn-x:hover { background: var(--n-blue); color: #000; box-shadow: 0 0 30px var(--n-blue); }
+    .btn-lux { 
+        background: linear-gradient(to bottom, var(--n-gold), #b37400); 
+        color: #800; border: none; padding: 18px; font-weight: 900; 
+        text-transform: uppercase; letter-spacing: 3px; cursor: pointer;
+        width: 100%; border-radius: 50px; margin-top: 20px;
+        box-shadow: 0 6px 0 #600;
+    }
+    .btn-lux:active { transform: translateY(4px); box-shadow: none; }
 
-    /* GACHA */
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
-    .envelope { aspect-ratio: 2/3; background: var(--n-red); border: 2px solid var(--n-gold); display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; transition: 0.4s; position: relative; transform-style: preserve-3d; }
-    .envelope.flipped { transform: rotateY(180deg); background: #fff; }
-    .env-back { position: absolute; backface-visibility: hidden; transform: rotateY(180deg); color: var(--n-red); font-size: 1rem; font-weight: bold; }
+    /* GACHA GRID */
+    .gacha-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 25px 0; }
+    .envelope { 
+        aspect-ratio: 2/3; background: var(--n-red); border: 2px solid var(--n-gold); 
+        display: flex; align-items: center; justify-content: center; font-size: 2.5rem; 
+        cursor: pointer; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d;
+        border-radius: 10px;
+    }
+    .envelope.reveal { transform: rotateY(180deg); background: #fff; }
+    .env-info { position: absolute; backface-visibility: hidden; transform: rotateY(180deg); color: var(--n-red); font-size: 1.1rem; font-weight: 900; }
 
-    /* DEBUG MONITOR */
-    #monitor { position: fixed; bottom: 10px; left: 10px; font-size: 10px; color: #0f0; opacity: 0.6; pointer-events: none; }
+    @keyframes pulse { 0% {transform:scale(1)} 50% {transform:scale(1.1)} 100% {transform:scale(1)} }
     .hidden { display: none !important; }
 </style>
 </head>
@@ -49,281 +76,348 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="ui-kernel">
-        <div id="hud" class="hidden">
-            <div class="hud-cell"><div id="ui-time" class="hud-val">60.0</div></div>
-            <div class="hud-cell" style="border-color: var(--n-gold);"><div id="ui-score" class="hud-val">0</div></div>
+    <div id="ui-portal">
+        <div id="hud">
+            <div class="hud-card">
+                <div class="hud-label">S_TIME</div>
+                <div id="ui-time" class="hud-val">60.0</div>
+            </div>
+            <div id="phase-tag" style="color:var(--n-gold); font-weight:bold; padding-top:10px;">[ PHASE: XUÂN ]</div>
+            <div class="hud-card" style="border-color: var(--n-blue);">
+                <div class="hud-label">LUCK_POINTS</div>
+                <div id="ui-score" class="hud-val">0</div>
+            </div>
         </div>
 
+        <div id="status-effects"></div>
+
         <div id="screen-menu" class="overlay interactive" style="display: flex;">
-            <div class="modal" style="text-align:center">
-                <div style="font-size: 4.5rem; text-shadow: 0 0 40px var(--n-blue);">⚡</div>
-                <h1 style="margin: 10px 0;">NEURAL_OVERDRIVE</h1>
-                <p style="color:#555; font-size: 0.7rem;">X-ENGINE V130.0 • OBJECT POOLING ENABLED</p>
-                <button class="btn-x" onclick="Kernel.boot()">[ START_ENGINE ]</button>
-                <button class="btn-x" style="border-color:#333; color:#333" onclick="alert('Admin: Admin / Quoc2007@')">[ CONFIG ]</button>
+            <div class="modal">
+                <div style="font-size: 5rem; margin-bottom: 20px;">🐲</div>
+                <h1 style="color:#fff; letter-spacing: 5px;">LUNAR ODYSSEY</h1>
+                <p style="color:var(--n-gold); font-size: 0.8rem;">X-ENGINE V200.0 • SUPREME EDITION</p>
+                <button class="btn-lux" onclick="ApexEngine.boot()">[ KHỞI CHẠY ]</button>
             </div>
         </div>
 
         <div id="screen-gacha" class="overlay interactive">
             <div class="modal">
-                <h2 style="color:var(--n-gold); text-align:center">SELECT_QUANTUM_REWARD</h2>
-                <div class="grid" id="gacha-grid"></div>
-                <p id="ui-luck" style="text-align:center; font-size:0.8rem"></p>
+                <h2 style="color:var(--n-gold)">LỰA CHỌN VẬN MỆNH</h2>
+                <div class="gacha-grid" id="gacha-grid"></div>
+                <p id="ui-luck-info" style="color: var(--n-blue); font-size:0.9rem;"></p>
             </div>
         </div>
 
         <div id="screen-result" class="overlay interactive">
-            <div class="modal" style="text-align:center">
-                <h1 style="color:var(--n-gold)">SYNC_COMPLETE</h1>
-                <div style="font-size: 5rem; margin: 20px 0;">🧧</div>
-                <h2 id="res-prize" style="font-size: 3rem; color: var(--n-blue);">0đ</h2>
-                <button class="btn-x" onclick="location.reload()">[ REBOOT ]</button>
+            <div class="modal">
+                <h1 style="color:var(--n-gold)">KẾT QUẢ CUỐI CÙNG</h1>
+                <div style="font-size: 5rem; margin: 20px 0;">🎉</div>
+                <h2 id="res-prize" style="font-size: 3.5rem; color: #fff; text-shadow: 0 0 20px var(--n-blue);">0đ</h2>
+                <button class="btn-lux" onclick="location.reload()">[ CHƠI LẠI ]</button>
             </div>
         </div>
     </div>
 
-    <div id="monitor">FPS: 60 | POOL_ACTIVE: 0 | GC_PRESSURE: LOW</div>
-
 <script>
 /**
- * ============================================================================
- * OBJECT POOLING SYSTEM (Hệ thống tối ưu bộ nhớ)
- * ============================================================================
+ * APEX ENGINE v200.0 - LUNAR ODYSSEY
+ * Architecture: Optimized Object Pooling, ADSR Audio, Procedural VFX
  */
-class ObjectPool {
-    constructor(createFn, size = 100) {
-        this.createFn = createFn;
-        this.pool = Array.from({ length: size }, () => ({ obj: createFn(), active: false }));
-    }
-
-    acquire() {
-        const item = this.pool.find(i => !i.active);
-        if (item) {
-            item.active = true;
-            return item.obj;
+const ApexEngine = (() => {
+    
+    /* --- 1. CORE PHYSICS & UTILS --- */
+    class Pool {
+        constructor(factory, size) {
+            this.items = Array.from({ length: size }, factory);
+            this.free = [...Array(size).keys()];
         }
-        // Nếu hết pool, tạo thêm (giảm thiểu nhưng vẫn dự phòng)
-        const newObj = this.createFn();
-        this.pool.push({ obj: newObj, active: true });
-        return newObj;
+        acquire() {
+            if (this.free.length > 0) {
+                const idx = this.free.pop();
+                const obj = this.items[idx];
+                obj._pIdx = idx; obj.active = true;
+                return obj;
+            } return null;
+        }
+        release(obj) { obj.active = false; this.free.push(obj._pIdx); }
     }
 
-    release(obj) {
-        const item = this.pool.find(i => i.obj === obj);
-        if (item) item.active = false;
-    }
+    const Audio = {
+        ctx: null, master: null,
+        init() {
+            if(this.ctx) return;
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            this.master = this.ctx.createGain(); this.master.gain.value = 0.15;
+            this.master.connect(this.ctx.destination);
+        },
+        play(f, t, d, v=1) {
+            const now = this.ctx.currentTime;
+            const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+            o.type = t; o.frequency.setValueAtTime(f, now);
+            g.gain.setValueAtTime(0, now);
+            g.gain.linearRampToValueAtTime(v, now + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.001, now + d);
+            o.connect(g); g.connect(this.master);
+            o.start(); o.stop(now + d + 0.1);
+        }
+    };
 
-    getActive() {
-        return this.pool.filter(i => i.active).map(i => i.obj);
-    }
-}
+    /* --- 2. ENGINE STATE --- */
+    const State = {
+        running: false, score: 0, time: 60,
+        w: 0, h: 0, lastT: 0,
+        player: { x: 0, tx: 0, y: 0, w: 130, h: 90 },
+        entities: [], particles: [], blossoms: [],
+        // BUFFS & DEBUFFS
+        buffs: { magnet: 0, shield: 0, star: 0, frozen: 0 },
+        phase: 'XUÂN' 
+    };
 
-/* ============================================================================
-   ENGINE MODULES
-   ============================================================================ */
+    const cvs = document.getElementById('gameCanvas');
+    const ctx = cvs.getContext('2d', { alpha: false });
 
-class Vec2 {
-    constructor(x=0, y=0) { this.set(x, y); }
-    set(x, y) { this.x = x; this.y = y; return this; }
-    add(v) { this.x += v.x; this.y += v.y; return this; }
-    mult(s) { this.x *= s; this.y *= s; return this; }
-    static dist(v1, v2) { return Math.hypot(v1.x - v2.x, v1.y - v2.y); }
-}
+    const particlePool = new Pool(() => ({ x:0, y:0, vx:0, vy:0, life:0, c:'', active:false }), 500);
+    const entityPool = new Pool(() => ({ x:0, y:0, vy:0, type:'', active:false, angle:0 }), 80);
 
-const AudioSys = {
-    ctx: null, master: null,
-    init() {
-        if(this.ctx) return;
-        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        this.master = this.ctx.createGain(); this.master.gain.value = 0.1;
-        this.master.connect(this.ctx.destination);
-    },
-    play(f, t, d, v=1) {
-        const now = this.ctx.currentTime;
-        const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
-        o.type = t; o.frequency.setValueAtTime(f, now);
-        g.gain.setValueAtTime(0, now);
-        g.gain.linearRampToValueAtTime(v, now + 0.01);
-        g.gain.exponentialRampToValueAtTime(0.001, now + d);
-        o.connect(g); g.connect(this.master);
-        o.start(); o.stop(now + d + 0.1);
-    }
-};
+    /* --- 3. PROCEDURAL RENDERER --- */
+    const Draw = {
+        lixi(ctx, x, y, type, t) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(Math.sin(t/300)*0.1);
+            
+            // Bloom Effect based on type
+            ctx.shadowBlur = 15;
+            if(type === 'gift') { ctx.fillStyle = "#d0021b"; ctx.shadowColor = "#f00"; }
+            else if(type === 'money_bag') { ctx.fillStyle = "#ffd700"; ctx.shadowColor = "#ffd700"; }
+            else if(type === 'magnet') { ctx.fillStyle = "#00eaff"; ctx.shadowColor = "#00eaff"; }
+            else if(type === 'shield') { ctx.fillStyle = "#39ff14"; ctx.shadowColor = "#39ff14"; }
+            
+            ctx.beginPath(); ctx.roundRect(-25, -35, 50, 70, 5); ctx.fill();
+            ctx.strokeStyle = "#ffd700"; ctx.lineWidth = 2; ctx.stroke();
+            
+            // Icon
+            ctx.fillStyle = "#fff"; ctx.font = "20px Arial"; ctx.textAlign="center";
+            const icons = { gift:'🧧', money_bag:'💰', magnet:'🧲', shield:'🛡️', star:'🌟', ice:'❄️' };
+            ctx.fillText(icons[type] || '🧧', 0, 10);
+            ctx.restore();
+        },
+        bomb(ctx, x, y, t) {
+            ctx.save(); ctx.translate(x, y);
+            const s = 1 + Math.sin(t/50)*0.1; ctx.scale(s, s);
+            ctx.fillStyle = "#111"; ctx.shadowBlur = 20; ctx.shadowColor = "#f00";
+            ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = "#ff0000"; ctx.stroke();
+            ctx.restore();
+        }
+    };
 
-const Paint = {
-    lixi(ctx, x, y, scale=1) {
-        ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
-        ctx.shadowBlur = 15; ctx.shadowColor = "#ff0050";
-        ctx.fillStyle = "#d0021b"; ctx.beginPath(); ctx.roundRect(-25, -35, 50, 70, 6); ctx.fill();
-        ctx.strokeStyle = "#ffd700"; ctx.lineWidth = 2; ctx.stroke();
-        ctx.restore();
-    },
-    bomb(ctx, x, y, time) {
-        ctx.save(); ctx.translate(x, y);
-        ctx.fillStyle = "#111"; ctx.shadowBlur = 20; ctx.shadowColor = "#ff0050";
-        ctx.beginPath(); ctx.arc(0, 5, 22, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = "#ff0050"; ctx.stroke();
-        ctx.restore();
-    }
-};
-
-/* ============================================================================
-   CORE KERNEL
-   ============================================================================ */
-const Kernel = {
-    cvs: document.getElementById('gameCanvas'),
-    ctx: document.getElementById('gameCanvas').getContext('2d'),
-    running: false, score: 0, time: 60,
-    player: { pos: new Vec2(), tx: 0, w: 120, h: 80 },
-    lastT: 0, fps: 0,
-
-    // POOLS
-    particlePool: new ObjectPool(() => ({ pos: new Vec2(), vel: new Vec2(), life: 0, color: '' }), 200),
-    entityPool: new ObjectPool(() => ({ pos: new Vec2(), vy: 0, type: '', active: false }), 50),
-
-    boot() {
-        AudioSys.init();
-        this.resize();
-        window.onresize = () => this.resize();
-        document.addEventListener('mousemove', e => this.player.tx = e.clientX);
-        document.addEventListener('touchmove', e => { e.preventDefault(); this.player.tx = e.touches[0].clientX; }, {passive:false});
-        this.start();
-    },
-
-    resize() {
-        this.w = this.cvs.width = window.innerWidth;
-        this.h = this.cvs.height = window.innerHeight;
-        this.player.pos.y = this.h - 120;
-    },
-
-    start() {
-        this.running = true; this.score = 0; this.time = 60;
-        UI.screen('hud', true); UI.closeAll();
-        this.lastT = performance.now();
-        requestAnimationFrame((t) => this.loop(t));
-        this.spawner();
-    },
-
-    loop(t) {
-        if(!this.running) return;
-        const dt = (t - this.lastT) / 1000;
-        this.lastT = t;
-        this.fps = Math.round(1/dt);
-
-        this.ctx.fillStyle = "#010103";
-        this.ctx.fillRect(0, 0, this.w, this.h);
+    /* --- 4. GAMEPLAY LOGIC --- */
+    const boot = () => {
+        Audio.init(); resize();
+        window.onresize = resize;
+        document.addEventListener('mousemove', e => State.player.tx = e.clientX);
+        document.addEventListener('touchmove', e => { e.preventDefault(); State.player.tx = e.touches[0].clientX; }, {passive:false});
         
-        // Player Smoothing
-        this.player.pos.x += (this.player.tx - this.player.pos.x) * 0.2;
+        State.running = true;
+        document.getElementById('screen-menu').style.display = 'none';
+        document.getElementById('hud').style.opacity = 1;
+        
+        // Stars/Blossoms
+        State.blossoms = Array.from({length: 40}, () => ({ x: Math.random()*State.w, y: Math.random()*State.h, s: Math.random()*1.5+0.5 }));
+        
+        State.lastT = performance.now();
+        requestAnimationFrame(loop);
+        spawner();
+    };
 
-        // Render Player
-        this.ctx.save();
-        this.ctx.translate(this.player.pos.x, this.player.pos.y);
-        this.ctx.strokeStyle = "#00f2ea"; this.ctx.lineWidth = 3; this.ctx.shadowBlur = 20; this.ctx.shadowColor = "#00f2ea";
-        this.ctx.strokeRect(-60, -40, 120, 80);
-        this.ctx.restore();
+    const resize = () => {
+        State.w = cvs.width = window.innerWidth;
+        State.h = cvs.height = window.innerHeight;
+        State.player.y = State.h - 130;
+    };
 
-        // Update & Render Entities (from Pool)
-        this.entityPool.pool.forEach(item => {
-            if(!item.active) return;
-            const e = item.obj;
-            e.pos.y += e.vy * (1 + (60 - this.time)/100);
+    const loop = (t) => {
+        if(!State.running) return;
+        const dt = (t - State.lastT) / 1000;
+        State.lastT = t;
 
-            if(e.type === 'bomb') Paint.bomb(this.ctx, e.pos.x, e.pos.y, t);
-            else Paint.lixi(this.ctx, e.pos.x, e.pos.y);
+        // Phase Color Logic
+        if(State.time > 40) { State.phase = 'XUÂN'; ctx.fillStyle = '#2d0202'; }
+        else if(State.time > 20) { State.phase = 'HẠ'; ctx.fillStyle = '#3a1a00'; }
+        else { State.phase = 'THU'; ctx.fillStyle = '#050a1a'; }
+        document.getElementById('phase-tag').innerText = `[ PHASE: ${State.phase} ]`;
 
-            if(Vec2.dist(e.pos, this.player.pos) < 70) {
-                this.hit(e); item.active = false;
-            } else if(e.pos.y > this.h + 50) item.active = false;
+        ctx.fillRect(0, 0, State.w, State.h);
+
+        // Player Movement (Frozen Check)
+        const lerpSpeed = State.buffs.frozen > 0 ? 0.05 : 0.18;
+        State.player.x += (State.player.tx - State.player.x) * lerpSpeed;
+
+        // Draw Player
+        ctx.save();
+        ctx.translate(State.player.x, State.player.y);
+        ctx.strokeStyle = State.buffs.shield > 0 ? varColor('--n-green') : varColor('--n-gold');
+        ctx.lineWidth = 4; ctx.shadowBlur = 20; ctx.shadowColor = ctx.strokeStyle;
+        ctx.beginPath(); ctx.roundRect(-65, -45, 130, 90, 10); ctx.stroke();
+        ctx.restore();
+
+        // Entity Loop
+        entityPool.items.forEach(e => {
+            if(!e.active) return;
+            
+            // Movement Physics
+            e.y += e.vy * (1 + (60 - State.time)/120);
+            if(State.buffs.magnet > 0 && e.type !== 'bomb') {
+                e.x += (State.player.x - e.x) * 0.15;
+                e.y += (State.player.y - e.y) * 0.15;
+            }
+
+            if(e.type === 'bomb') Draw.bomb(ctx, e.x, e.y, t); else Draw.lixi(ctx, e.x, e.y, e.type, t);
+
+            // Collision
+            if(Math.hypot(e.x - State.player.x, e.y - State.player.y) < 75) {
+                handleHit(e); entityPool.release(e);
+            } else if(e.y > State.h + 100) entityPool.release(e);
         });
 
-        // Update & Render Particles (from Pool)
-        this.particlePool.pool.forEach(item => {
-            if(!item.active) return;
-            const p = item.obj;
-            p.pos.add(p.vel);
-            p.life -= 0.02;
-            if(p.life <= 0) { item.active = false; return; }
-            this.ctx.fillStyle = p.color; this.ctx.globalAlpha = p.life;
-            this.ctx.fillRect(p.pos.x, p.pos.y, 4, 4);
+        // Particle Loop
+        particlePool.items.forEach(p => {
+            if(!p.active) return;
+            p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life -= 0.02;
+            if(p.life <= 0) { particlePool.release(p); return; }
+            ctx.fillStyle = p.c; ctx.globalAlpha = p.life;
+            ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
         });
-        this.ctx.globalAlpha = 1;
+        ctx.globalAlpha = 1;
 
-        this.time -= dt;
-        document.getElementById('ui-time').innerText = Math.max(0, this.time).toFixed(1);
-        document.getElementById('monitor').innerText = `FPS: ${this.fps} | ENT_ACTIVE: ${this.entityPool.getActive().length} | PART_ACTIVE: ${this.particlePool.getActive().length}`;
+        // Update Buffs
+        for(let b in State.buffs) if(State.buffs[b] > 0) State.buffs[b] -= dt;
+        updateBuffUI();
 
-        if(this.time <= 0) this.over();
-        requestAnimationFrame((t) => this.loop(t));
-    },
+        // Clock Sync
+        State.time -= dt;
+        document.getElementById('ui-time').innerText = Math.max(0, State.time).toFixed(1);
+        document.getElementById('ui-score').innerText = State.score;
 
-    hit(e) {
-        const color = e.type === 'bomb' ? '#ff0050' : '#ffd700';
-        for(let i=0; i<15; i++) {
-            const p = this.particlePool.acquire();
-            p.pos.set(e.pos.x, e.pos.y);
-            p.vel.set((Math.random()-0.5)*10, (Math.random()-0.5)*10);
-            p.life = 1.0; p.color = color;
-        }
+        if(State.time <= 0) gameOver();
+        else requestAnimationFrame(loop);
+    };
 
+    const handleHit = (e) => {
         if(e.type === 'bomb') {
-            this.score = Math.max(0, this.score - 20);
-            AudioSys.play(100, 'sawtooth', 0.3);
+            if(State.buffs.shield > 0) { State.buffs.shield = 0; Audio.play(400, 'sine', 0.2); return; }
+            State.score = Math.max(0, State.score - 50);
+            Audio.play(80, 'sawtooth', 0.4);
             if(navigator.vibrate) navigator.vibrate(200);
         } else {
-            this.score += 10;
-            AudioSys.play(1000 + (this.score % 500), 'sine', 0.1);
+            // Points logic
+            let pts = 10;
+            if(e.type === 'star') pts = 50;
+            if(e.type === 'money_bag') pts = 30;
+            if(State.buffs.star > 0) pts *= 3;
+            
+            State.score += pts;
+            
+            // Logic Buffs
+            if(e.type === 'magnet') State.buffs.magnet = 8;
+            if(e.type === 'shield') State.buffs.shield = 1; // 1 charge
+            if(e.type === 'star') State.buffs.star = 5;
+            if(e.type === 'ice') State.buffs.frozen = 3;
+
+            Audio.play(1000 + (State.score % 500), 'sine', 0.1);
         }
-        document.getElementById('ui-score').innerText = this.score;
-    },
+        
+        // Hit Particles
+        for(let i=0; i<15; i++) {
+            const p = particlePool.acquire();
+            if(p) {
+                p.x = e.x; p.y = e.y;
+                const ang = Math.random()*Math.PI*2; const spd = Math.random()*8;
+                p.vx = Math.cos(ang)*spd; p.vy = Math.sin(ang)*spd;
+                p.life = 1.0; p.c = e.type === 'bomb' ? '#f00' : '#ffd700';
+            }
+        }
+    };
 
-    spawner() {
-        if(!this.running) return;
-        const e = this.entityPool.acquire();
-        e.pos.set(Math.random()*(this.w-100)+50, -50);
-        e.vy = 5;
-        e.type = Math.random() < 0.2 ? 'bomb' : 'gift';
-        setTimeout(() => this.spawner(), 500);
-    },
+    const spawner = () => {
+        if(!State.running) return;
+        const e = entityPool.acquire();
+        if(e) {
+            e.x = Math.random()*(State.w-100)+50; e.y = -100; e.vy = 4.5;
+            let r = Math.random();
+            // Diversified Item Pool
+            if(r < 0.15) e.type = 'bomb';
+            else if(r < 0.20) e.type = 'magnet';
+            else if(r < 0.23) e.type = 'shield';
+            else if(r < 0.26) e.type = 'star';
+            else if(r < 0.29) e.type = 'money_bag';
+            else if(r < 0.32) e.type = 'ice';
+            else e.type = 'gift';
+        }
+        setTimeout(spawner, 500);
+    };
 
-    over() {
-        this.running = false;
-        UI.screen('hud', false);
-        UI.open('gacha');
-        const luck = Math.min(40, this.score / 20);
-        document.getElementById('ui-luck').innerText = `LUCK_MODIFIER: +${luck.toFixed(1)}%`;
-        Gacha.init(luck);
-    }
-};
+    const updateBuffUI = () => {
+        const tray = document.getElementById('status-effects');
+        tray.innerHTML = '';
+        const icons = { magnet:'🧲', star:'🌟', frozen:'❄️' };
+        for(let b in icons) {
+            if(State.buffs[b] > 0) {
+                const div = document.createElement('div');
+                div.className = 'effect-icon';
+                div.innerText = icons[b];
+                tray.appendChild(div);
+            }
+        }
+    };
 
-/* ============================================================================
-   GACHA & UI
-   ============================================================================ */
-const Gacha = {
-    init(luck) {
-        const g = document.getElementById('gacha-grid'); g.innerHTML = '';
+    const gameOver = () => {
+        State.running = false;
+        const luck = Math.min(60, State.score / 12);
+        setupGacha(luck);
+    };
+
+    const setupGacha = (luck) => {
+        document.getElementById('hud').style.opacity = 0;
+        document.getElementById('screen-gacha').style.display = 'flex';
+        document.getElementById('ui-luck-info').innerText = `KỸ NĂNG VƯỢT TRỘI: +${luck.toFixed(1)}% MAY MẮN`;
+        const grid = document.getElementById('gacha-grid'); grid.innerHTML = '';
         for(let i=0; i<9; i++) {
             const el = document.createElement('div'); el.className = 'envelope';
-            el.innerHTML = `<div class="env-back">?</div><div style="backface-visibility:hidden">🧧</div>`;
+            el.innerHTML = `<div class="env-info">?</div><div style="backface-visibility:hidden">🧧</div>`;
             el.onclick = () => {
-                if(el.classList.contains('flipped')) return;
-                const p = this.roll(luck);
-                el.classList.add('flipped');
-                el.querySelector('.env-back').innerText = (p/1000) + 'k';
-                AudioSys.play(880, 'sine', 0.5);
-                setTimeout(() => UI.result(p), 1200);
+                if(el.classList.contains('reveal')) return;
+                const p = GachaSystem.roll(luck);
+                el.classList.add('reveal');
+                el.querySelector('.env-info').innerText = (p/1000) + 'k';
+                setTimeout(() => {
+                    document.getElementById('screen-gacha').style.display = 'none';
+                    document.getElementById('screen-result').style.display = 'flex';
+                    document.getElementById('res-prize').innerText = p.toLocaleString() + "đ";
+                }, 1300);
             };
-            g.appendChild(el);
+            grid.appendChild(el);
         }
-    },
+    };
+
+    return { boot, resize };
+})();
+
+/* --- 5. DYNAMIC GACHA LOGIC --- */
+const GachaSystem = {
     roll(luck) {
-        const t = [ {v:100000, w:1}, {v:50000, w:10}, {v:20000, w:40}, {v:10000, w:150} ];
+        // Pity Mechanic: High score practically guarantees no 10k
+        const pityThreshold = 50;
+        const table = [ {v:200000, w:0.5}, {v:100000, w:2}, {v:50000, w:15}, {v:20000, w:80}, {v:10000, w:150} ];
         let tot = 0;
-        const pool = t.map(i => {
+        const pool = table.map(i => {
             let w = i.w;
             if(i.v >= 50000) w *= (1 + luck/10);
-            else w = Math.max(w * 0.65, w * (1 - luck/100));
+            else {
+                w = Math.max(w * 0.4, w * (1 - luck/80));
+                if(luck > pityThreshold) w = 0.1; // Gần như loại bỏ giải nhỏ nếu quá giỏi
+            }
             tot += w; return { v: i.v, cw: tot };
         });
         const r = Math.random() * tot;
@@ -331,14 +425,8 @@ const Gacha = {
     }
 };
 
-const UI = {
-    open(id) { document.getElementById(`screen-${id}`).style.display = 'flex'; },
-    closeAll() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); },
-    screen(id, s) { document.getElementById(id).className = s ? '' : 'hidden'; },
-    result(p) { this.closeAll(); this.open('result'); document.getElementById('res-prize').innerText = p.toLocaleString() + "đ"; }
-};
-
-window.onload = () => Kernel.resize();
+function varColor(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+window.onload = () => ApexEngine.resize();
 </script>
 </body>
 </html>
