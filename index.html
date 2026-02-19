@@ -3,655 +3,342 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Lì Xì 70.0 - Universe Expansion</title>
+<title>Lì Xì 130.0 - Neural Overdrive (Object Pooling)</title>
 <style>
     /* =========================================
-       1. SYSTEM STYLES (CYBER-UI)
+       1. SYSTEM ARCHITECTURE (CORE CSS)
        ========================================= */
     :root {
-        --c-main: #00f2ea;
-        --c-sec: #ff0050;
-        --c-gold: #ffd700;
-        --c-bg: #0b0b0b;
-        --c-panel: rgba(15, 20, 25, 0.96);
-        --font: 'Consolas', 'Courier New', monospace;
+        --n-blue: #00f2ea; --n-red: #ff0050; --n-gold: #ffd700;
+        --bg: #010103; --font: 'Fira Code', monospace;
     }
 
     * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-
-    body {
-        margin: 0; overflow: hidden; background: var(--c-bg);
-        font-family: var(--font); color: white;
-    }
-
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--font); color: white; }
     canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
 
     /* UI LAYER */
-    #ui-layer {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        z-index: 10; pointer-events: none; display: flex; flex-direction: column;
-    }
+    #ui-kernel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; }
+    .interactive { pointer-events: auto !important; }
 
-    .interactive { pointer-events: auto; }
+    /* HUD SYSTEM */
+    #hud { display: flex; justify-content: space-between; padding: 25px; width: 100%; position: absolute; top: 0; z-index: 20; }
+    .hud-cell { border-left: 3px solid var(--n-blue); padding: 5px 15px; background: rgba(0, 30, 50, 0.3); backdrop-filter: blur(5px); }
+    .hud-val { font-size: 1.8rem; font-weight: bold; text-shadow: 0 0 10px var(--n-blue); }
 
-    /* HUD */
-    #hud {
-        display: flex; justify-content: space-between; padding: 15px;
-        background: linear-gradient(180deg, rgba(0,0,0,0.8), transparent);
-    }
-    .hud-box {
-        border: 1px solid var(--c-main); padding: 5px 15px;
-        border-radius: 4px; background: rgba(0, 50, 50, 0.5);
-        display: flex; align-items: center; gap: 10px;
-        box-shadow: 0 0 10px rgba(0, 242, 234, 0.2);
-    }
-    .hud-label { font-size: 0.7rem; color: #aaa; text-transform: uppercase; }
-    .hud-val { font-size: 1.2rem; font-weight: bold; color: var(--c-main); }
-
-    /* MENUS & PANELS */
-    .panel-overlay {
-        position: absolute; inset: 0; background: rgba(0,0,0,0.85);
-        display: flex; align-items: center; justify-content: center;
-        backdrop-filter: blur(5px); transition: opacity 0.3s;
-    }
-    .panel {
-        background: var(--c-panel); border: 1px solid var(--c-main);
-        width: 90%; max-width: 450px; max-height: 85vh;
-        display: flex; flex-direction: column; overflow: hidden;
-        box-shadow: 0 0 50px rgba(0, 242, 234, 0.1);
-        transform: scale(0.95); opacity: 0; transition: 0.3s;
-    }
-    .panel.open { transform: scale(1); opacity: 1; }
-
-    .panel-header {
-        padding: 15px; border-bottom: 1px solid #333;
-        display: flex; justify-content: space-between; align-items: center;
-        background: rgba(255,255,255,0.05);
-    }
-    .panel-title { font-size: 1.2rem; font-weight: bold; color: var(--c-gold); text-transform: uppercase; }
-    .panel-body { padding: 20px; overflow-y: auto; flex: 1; }
-    .panel-footer { padding: 15px; border-top: 1px solid #333; display: flex; gap: 10px; }
-
+    /* OVERLAYS */
+    .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; backdrop-filter: blur(20px); z-index: 100; }
+    .modal { background: rgba(10, 15, 25, 0.98); border: 1px solid var(--n-blue); width: 90%; max-width: 500px; padding: 30px; box-shadow: 0 0 100px rgba(0, 242, 234, 0.1); }
+    
     /* BUTTONS */
-    .btn {
-        background: transparent; border: 1px solid var(--c-main); color: var(--c-main);
-        padding: 10px 20px; cursor: pointer; font-family: var(--font); font-weight: bold;
-        text-transform: uppercase; flex: 1; transition: 0.2s; position: relative; overflow: hidden;
-    }
-    .btn:hover { background: var(--c-main); color: #000; box-shadow: 0 0 15px var(--c-main); }
-    .btn-red { border-color: var(--c-sec); color: var(--c-sec); }
-    .btn-red:hover { background: var(--c-sec); color: #fff; box-shadow: 0 0 15px var(--c-sec); }
-    
-    /* SKINS GRID */
-    .skin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .skin-card {
-        border: 1px solid #444; padding: 10px; text-align: center; cursor: pointer;
-        transition: 0.2s; background: rgba(0,0,0,0.3);
-    }
-    .skin-card:hover { border-color: var(--c-gold); background: rgba(255, 215, 0, 0.1); }
-    .skin-card.active { border-color: var(--c-main); background: rgba(0, 242, 234, 0.1); box-shadow: inset 0 0 10px rgba(0, 242, 234, 0.2); }
-    
-    /* ACHIEVEMENTS */
-    .ach-item {
-        border-bottom: 1px solid #333; padding: 10px 0; display: flex;
-        justify-content: space-between; align-items: center; opacity: 0.5;
-    }
-    .ach-item.unlocked { opacity: 1; color: var(--c-gold); text-shadow: 0 0 5px var(--c-gold); }
-    
-    /* UTILS */
-    .hidden { display: none !important; }
-    .text-center { text-align: center; }
-    
-    /* NOTIFICATION */
-    #notify-area {
-        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-        display: flex; flex-direction: column; gap: 10px; z-index: 100;
-    }
-    .toast {
-        background: rgba(0,0,0,0.9); border: 1px solid var(--c-gold);
-        padding: 10px 20px; color: var(--c-gold); font-weight: bold;
-        animation: slideUp 0.3s ease-out; box-shadow: 0 0 20px rgba(255,215,0,0.3);
-    }
-    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .btn-x { background: transparent; border: 1px solid var(--n-blue); color: var(--n-blue); padding: 16px; cursor: pointer; font-family: var(--font); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; width: 100%; margin-top: 10px; }
+    .btn-x:hover { background: var(--n-blue); color: #000; box-shadow: 0 0 30px var(--n-blue); }
 
-    /* MENU MAIN */
-    #main-menu { text-align: center; }
-    .big-logo { font-size: 4rem; margin-bottom: 10px; animation: hover 3s infinite ease-in-out; }
-    @keyframes hover { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
+    /* GACHA */
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
+    .envelope { aspect-ratio: 2/3; background: var(--n-red); border: 2px solid var(--n-gold); display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; transition: 0.4s; position: relative; transform-style: preserve-3d; }
+    .envelope.flipped { transform: rotateY(180deg); background: #fff; }
+    .env-back { position: absolute; backface-visibility: hidden; transform: rotateY(180deg); color: var(--n-red); font-size: 1rem; font-weight: bold; }
+
+    /* DEBUG MONITOR */
+    #monitor { position: fixed; bottom: 10px; left: 10px; font-size: 10px; color: #0f0; opacity: 0.6; pointer-events: none; }
+    .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
-    <canvas id="cvs"></canvas>
+    <canvas id="gameCanvas"></canvas>
 
-    <div id="ui-layer">
-        
+    <div id="ui-kernel">
         <div id="hud" class="hidden">
-            <div class="hud-box">
-                <div><div class="hud-label">TIME</div><div id="ui-time" class="hud-val">60</div></div>
-            </div>
-            <div class="hud-box" onclick="Game.pause()">
-                <div><div class="hud-label">SCORE</div><div id="ui-score" class="hud-val">0</div></div>
+            <div class="hud-cell"><div id="ui-time" class="hud-val">60.0</div></div>
+            <div class="hud-cell" style="border-color: var(--n-gold);"><div id="ui-score" class="hud-val">0</div></div>
+        </div>
+
+        <div id="screen-menu" class="overlay interactive" style="display: flex;">
+            <div class="modal" style="text-align:center">
+                <div style="font-size: 4.5rem; text-shadow: 0 0 40px var(--n-blue);">⚡</div>
+                <h1 style="margin: 10px 0;">NEURAL_OVERDRIVE</h1>
+                <p style="color:#555; font-size: 0.7rem;">X-ENGINE V130.0 • OBJECT POOLING ENABLED</p>
+                <button class="btn-x" onclick="Kernel.boot()">[ START_ENGINE ]</button>
+                <button class="btn-x" style="border-color:#333; color:#333" onclick="alert('Admin: Admin / Quoc2007@')">[ CONFIG ]</button>
             </div>
         </div>
 
-        <div id="screen-menu" class="panel-overlay">
-            <div class="panel open" id="main-menu">
-                <div class="big-logo">🪐</div>
-                <h1 style="color:var(--c-main); margin:0; font-size:2.5rem;">LÌ XÌ 70.0</h1>
-                <p style="color:#777; letter-spacing:2px; margin-bottom:30px;">UNIVERSE EXPANSION</p>
-                
-                <button class="btn" onclick="Game.init()">NEW GAME</button>
-                <button class="btn" style="margin-top:10px" onclick="UI.open('skins')">SKINS & SHOP</button>
-                <button class="btn" style="margin-top:10px" onclick="UI.open('achievements')">ACHIEVEMENTS</button>
-                <button class="btn btn-red" style="margin-top:10px; border-color:#555; color:#555;" onclick="UI.open('admin')">SYSTEM KERNEL</button>
+        <div id="screen-gacha" class="overlay interactive">
+            <div class="modal">
+                <h2 style="color:var(--n-gold); text-align:center">SELECT_QUANTUM_REWARD</h2>
+                <div class="grid" id="gacha-grid"></div>
+                <p id="ui-luck" style="text-align:center; font-size:0.8rem"></p>
             </div>
         </div>
 
-        <div id="screen-skins" class="panel-overlay hidden">
-            <div class="panel open">
-                <div class="panel-header">
-                    <span class="panel-title">KHO TRANG BỊ</span>
-                    <span id="wallet-val" style="color:var(--c-gold); font-weight:bold;">0đ</span>
-                </div>
-                <div class="panel-body">
-                    <div class="skin-grid" id="skin-list"></div>
-                </div>
-                <div class="panel-footer">
-                    <button class="btn btn-red" onclick="UI.close('skins')">BACK</button>
-                </div>
+        <div id="screen-result" class="overlay interactive">
+            <div class="modal" style="text-align:center">
+                <h1 style="color:var(--n-gold)">SYNC_COMPLETE</h1>
+                <div style="font-size: 5rem; margin: 20px 0;">🧧</div>
+                <h2 id="res-prize" style="font-size: 3rem; color: var(--n-blue);">0đ</h2>
+                <button class="btn-x" onclick="location.reload()">[ REBOOT ]</button>
             </div>
         </div>
-
-        <div id="screen-achievements" class="panel-overlay hidden">
-            <div class="panel open">
-                <div class="panel-header"><span class="panel-title">THÀNH TỰU</span></div>
-                <div class="panel-body" id="ach-list"></div>
-                <div class="panel-footer"><button class="btn btn-red" onclick="UI.close('achievements')">BACK</button></div>
-            </div>
-        </div>
-
-        <div id="screen-admin" class="panel-overlay hidden">
-            <div class="panel open">
-                <div class="panel-header"><span class="panel-title">GOD MODE</span></div>
-                <div class="panel-body">
-                    <div style="margin-bottom:15px;">
-                        <label>Password:</label>
-                        <input type="password" id="adm-pass" style="width:100%; background:#222; border:1px solid #444; color:#fff; padding:5px;">
-                        <button class="btn" style="margin-top:5px; padding:5px;" onclick="Admin.login()">AUTH</button>
-                    </div>
-                    <div id="adm-controls" class="hidden">
-                        <label>Gacha Config (JSON):</label>
-                        <textarea id="adm-cfg" style="width:100%; height:150px; background:#111; color:#0f0; font-family:monospace;"></textarea>
-                        <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:5px;">
-                            <button class="btn" onclick="Admin.setPhys('g', 0.1)">LOW GRAV</button>
-                            <button class="btn" onclick="Admin.setPhys('g', 1.0)">HI GRAV</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel-footer">
-                    <button class="btn" onclick="Admin.save()">SAVE</button>
-                    <button class="btn btn-red" onclick="UI.close('admin')">EXIT</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="screen-result" class="panel-overlay hidden">
-            <div class="panel open text-center">
-                <h1 style="color:var(--c-gold)">MISSION COMPLETE</h1>
-                <div style="font-size:3rem; margin:20px 0;">🧧</div>
-                <h2 id="res-prize" style="font-size:2.5rem; margin:0; color:var(--c-main)">0đ</h2>
-                <p>Luck Factor: <span id="res-luck">0</span>%</p>
-                <div class="panel-footer">
-                    <button class="btn" onclick="location.reload()">SAVE & EXIT</button>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <div id="notify-area"></div>
+    <div id="monitor">FPS: 60 | POOL_ACTIVE: 0 | GC_PRESSURE: LOW</div>
 
 <script>
 /**
  * ============================================================================
- * LÌ XÌ 70.0 - UNIVERSE EXPANSION ENGINE
- * Author: HCMUTE Student
+ * OBJECT POOLING SYSTEM (Hệ thống tối ưu bộ nhớ)
  * ============================================================================
  */
+class ObjectPool {
+    constructor(createFn, size = 100) {
+        this.createFn = createFn;
+        this.pool = Array.from({ length: size }, () => ({ obj: createFn(), active: false }));
+    }
 
-/* --- 1. CORE UTILS & STORAGE --- */
-const Store = {
-    get: (k, def) => JSON.parse(localStorage.getItem(k) || JSON.stringify(def)),
-    set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
-    // Default Data Schema
-    data: {
-        money: 0,
-        skin: 'default',
-        unlockedSkins: ['default'],
-        achievements: [], // IDs of unlocked achievements
-        stats: { bombs: 0, stars: 0, games: 0 }
+    acquire() {
+        const item = this.pool.find(i => !i.active);
+        if (item) {
+            item.active = true;
+            return item.obj;
+        }
+        // Nếu hết pool, tạo thêm (giảm thiểu nhưng vẫn dự phòng)
+        const newObj = this.createFn();
+        this.pool.push({ obj: newObj, active: true });
+        return newObj;
+    }
+
+    release(obj) {
+        const item = this.pool.find(i => i.obj === obj);
+        if (item) item.active = false;
+    }
+
+    getActive() {
+        return this.pool.filter(i => i.active).map(i => i.obj);
+    }
+}
+
+/* ============================================================================
+   ENGINE MODULES
+   ============================================================================ */
+
+class Vec2 {
+    constructor(x=0, y=0) { this.set(x, y); }
+    set(x, y) { this.x = x; this.y = y; return this; }
+    add(v) { this.x += v.x; this.y += v.y; return this; }
+    mult(s) { this.x *= s; this.y *= s; return this; }
+    static dist(v1, v2) { return Math.hypot(v1.x - v2.x, v1.y - v2.y); }
+}
+
+const AudioSys = {
+    ctx: null, master: null,
+    init() {
+        if(this.ctx) return;
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.master = this.ctx.createGain(); this.master.gain.value = 0.1;
+        this.master.connect(this.ctx.destination);
+    },
+    play(f, t, d, v=1) {
+        const now = this.ctx.currentTime;
+        const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+        o.type = t; o.frequency.setValueAtTime(f, now);
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(v, now + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.001, now + d);
+        o.connect(g); g.connect(this.master);
+        o.start(); o.stop(now + d + 0.1);
     }
 };
 
-// Initialize User Data
-let User = Store.get('lx70_user', Store.data);
-const saveUser = () => Store.set('lx70_user', User);
-
-/* --- 2. ASSETS GENERATOR (PROCEDURAL) --- */
-const Assets = {
-    // Draw Starfield Background
-    drawBG(ctx, w, h, time) {
-        ctx.fillStyle = "#050505";
-        ctx.fillRect(0, 0, w, h);
-        ctx.fillStyle = "#ffffff";
-        for(let i=0; i<50; i++) {
-            let x = (Math.sin(i * 132.1 + time * 0.05) * w + w) % w;
-            let y = (Math.cos(i * 453.2 + time * 0.1) * h + h) % h;
-            let s = (Math.sin(time + i) + 2) * 1.5;
-            ctx.globalAlpha = Math.random() * 0.5 + 0.3;
-            ctx.beginPath(); ctx.arc(x, y, s, 0, Math.PI*2); ctx.fill();
-        }
-        ctx.globalAlpha = 1;
+const Paint = {
+    lixi(ctx, x, y, scale=1) {
+        ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
+        ctx.shadowBlur = 15; ctx.shadowColor = "#ff0050";
+        ctx.fillStyle = "#d0021b"; ctx.beginPath(); ctx.roundRect(-25, -35, 50, 70, 6); ctx.fill();
+        ctx.strokeStyle = "#ffd700"; ctx.lineWidth = 2; ctx.stroke();
+        ctx.restore();
     },
-    
-    // Draw Basket based on Skin
-    drawPlayer(ctx, p) {
-        const skin = Skins[User.skin];
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        
-        // Glow Effect
-        ctx.shadowBlur = 20; 
-        ctx.shadowColor = skin.color;
-        
-        // Body
-        ctx.fillStyle = skin.fill;
-        ctx.strokeStyle = skin.color;
-        ctx.lineWidth = 3;
-        
-        ctx.beginPath();
-        ctx.moveTo(-p.w/2, -p.h/2);
-        ctx.lineTo(p.w/2, -p.h/2);
-        ctx.lineTo(p.w/3, p.h/2);
-        ctx.lineTo(-p.w/3, p.h/2);
-        ctx.closePath();
-        ctx.fill(); ctx.stroke();
-        
-        // Icon
-        ctx.fillStyle = "#fff";
-        ctx.font = "30px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(skin.icon, 0, 10);
-        
+    bomb(ctx, x, y, time) {
+        ctx.save(); ctx.translate(x, y);
+        ctx.fillStyle = "#111"; ctx.shadowBlur = 20; ctx.shadowColor = "#ff0050";
+        ctx.beginPath(); ctx.arc(0, 5, 22, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = "#ff0050"; ctx.stroke();
         ctx.restore();
     }
 };
 
-/* --- 3. SYSTEM: SKINS & ACHIEVEMENTS --- */
-const Skins = {
-    'default': { name: 'Cơ Bản', price: 0, color: '#00f2ea', fill: 'rgba(0,242,234,0.1)', icon: '🧺', bonus: 'None' },
-    'gold':    { name: 'Hoàng Kim', price: 5000, color: '#ffd700', fill: 'rgba(255,215,0,0.2)', icon: '👑', bonus: '+20% Tiền' },
-    'magnet':  { name: 'Từ Tính', price: 8000, color: '#ff0050', fill: 'rgba(255,0,80,0.2)', icon: '🧲', bonus: 'Hút Quà' },
-    'time':    { name: 'Vô Tận', price: 12000, color: '#0f0', fill: 'rgba(0,255,0,0.2)', icon: '⏳', bonus: '+10s Game' }
-};
+/* ============================================================================
+   CORE KERNEL
+   ============================================================================ */
+const Kernel = {
+    cvs: document.getElementById('gameCanvas'),
+    ctx: document.getElementById('gameCanvas').getContext('2d'),
+    running: false, score: 0, time: 60,
+    player: { pos: new Vec2(), tx: 0, w: 120, h: 80 },
+    lastT: 0, fps: 0,
 
-const Achievements = [
-    { id: 'first_blood', name: 'Khởi đầu', desc: 'Chơi ván đầu tiên', cond: (u) => u.stats.games >= 1 },
-    { id: 'bomb_master', name: 'Kẻ Hủy Diệt', desc: 'Hứng 10 quả bom (Tại sao?)', cond: (u) => u.stats.bombs >= 10 },
-    { id: 'rich_kid', name: 'Đại Gia', desc: 'Sở hữu 10,000đ', cond: (u) => u.money >= 10000 }
-];
+    // POOLS
+    particlePool: new ObjectPool(() => ({ pos: new Vec2(), vel: new Vec2(), life: 0, color: '' }), 200),
+    entityPool: new ObjectPool(() => ({ pos: new Vec2(), vy: 0, type: '', active: false }), 50),
 
-/* --- 4. ENGINE CORE --- */
-const Engine = {
-    cvs: null, ctx: null,
-    w: 0, h: 0,
-    running: false,
-    
-    // Physics Config (Editable by Admin)
-    phys: { g: 0.2, wind: 0 },
-    
-    player: { x:0, y:0, w:100, h:70 },
-    items: [],
-    particles: [],
-    
-    score: 0, time: 60,
-    
-    init() {
-        this.cvs = document.getElementById('cvs');
-        this.ctx = this.cvs.getContext('2d', {alpha: false});
+    boot() {
+        AudioSys.init();
         this.resize();
         window.onresize = () => this.resize();
-        
-        // Input
-        const move = (x) => {
-            if(!this.running) return;
-            this.player.x = Math.max(50, Math.min(this.w-50, x));
-        };
-        this.cvs.addEventListener('mousemove', e => move(e.clientX));
-        this.cvs.addEventListener('touchmove', e => { e.preventDefault(); move(e.touches[0].clientX); }, {passive:false});
-        
-        this.loop(0);
+        document.addEventListener('mousemove', e => this.player.tx = e.clientX);
+        document.addEventListener('touchmove', e => { e.preventDefault(); this.player.tx = e.touches[0].clientX; }, {passive:false});
+        this.start();
     },
-    
+
     resize() {
         this.w = this.cvs.width = window.innerWidth;
         this.h = this.cvs.height = window.innerHeight;
-        this.player.y = this.h - 100;
-        this.player.x = this.w/2;
+        this.player.pos.y = this.h - 120;
     },
-    
+
+    start() {
+        this.running = true; this.score = 0; this.time = 60;
+        UI.screen('hud', true); UI.closeAll();
+        this.lastT = performance.now();
+        requestAnimationFrame((t) => this.loop(t));
+        this.spawner();
+    },
+
     loop(t) {
-        const dt = t * 0.001; // Time in seconds
+        if(!this.running) return;
+        const dt = (t - this.lastT) / 1000;
+        this.lastT = t;
+        this.fps = Math.round(1/dt);
+
+        this.ctx.fillStyle = "#010103";
+        this.ctx.fillRect(0, 0, this.w, this.h);
         
-        // 1. CLEAR & BG
-        Assets.drawBG(this.ctx, this.w, this.h, t/1000);
-        
-        if(this.running) {
-            // 2. UPDATE LOGIC
-            this.updatePhysics();
-            
-            // 3. DRAW GAME
-            Assets.drawPlayer(this.ctx, this.player);
-            
-            this.items.forEach(i => {
-                this.ctx.save();
-                this.ctx.translate(i.x, i.y);
-                this.ctx.rotate(i.rot);
-                this.ctx.font = "40px Arial";
-                this.ctx.fillText(i.icon, -20, 20);
-                this.ctx.restore();
-            });
-            
-            this.particles.forEach(p => {
-                this.ctx.fillStyle = p.c;
-                this.ctx.fillRect(p.x, p.y, p.s, p.s);
-            });
-        }
-        
-        requestAnimationFrame((time) => this.loop(time));
-    },
-    
-    updatePhysics() {
-        // Items
-        for(let i=this.items.length-1; i>=0; i--) {
-            let it = this.items[i];
-            it.y += it.vy;
-            it.x += Math.sin(it.y * 0.01) * 2 + this.phys.wind; // Wind effect
-            it.rot += 0.05;
-            
-            // Magnet Effect (Skin)
-            if(User.skin === 'magnet' && it.type !== 'bomb') {
-                it.x += (this.player.x - it.x) * 0.05;
-                it.y += (this.player.y - it.y) * 0.05;
-            }
-            
-            // Collision
-            if(Math.abs(it.x - this.player.x) < 60 && Math.abs(it.y - this.player.y) < 50) {
-                this.hit(it);
-                this.items.splice(i,1);
-            } else if(it.y > this.h) {
-                this.items.splice(i,1);
-            }
-        }
-        
-        // Particles
-        for(let i=this.particles.length-1; i>=0; i--) {
-            let p = this.particles[i];
-            p.x += p.vx; p.y += p.vy;
-            p.vy += this.phys.g; // Gravity
+        // Player Smoothing
+        this.player.pos.x += (this.player.tx - this.player.pos.x) * 0.2;
+
+        // Render Player
+        this.ctx.save();
+        this.ctx.translate(this.player.pos.x, this.player.pos.y);
+        this.ctx.strokeStyle = "#00f2ea"; this.ctx.lineWidth = 3; this.ctx.shadowBlur = 20; this.ctx.shadowColor = "#00f2ea";
+        this.ctx.strokeRect(-60, -40, 120, 80);
+        this.ctx.restore();
+
+        // Update & Render Entities (from Pool)
+        this.entityPool.pool.forEach(item => {
+            if(!item.active) return;
+            const e = item.obj;
+            e.pos.y += e.vy * (1 + (60 - this.time)/100);
+
+            if(e.type === 'bomb') Paint.bomb(this.ctx, e.pos.x, e.pos.y, t);
+            else Paint.lixi(this.ctx, e.pos.x, e.pos.y);
+
+            if(Vec2.dist(e.pos, this.player.pos) < 70) {
+                this.hit(e); item.active = false;
+            } else if(e.pos.y > this.h + 50) item.active = false;
+        });
+
+        // Update & Render Particles (from Pool)
+        this.particlePool.pool.forEach(item => {
+            if(!item.active) return;
+            const p = item.obj;
+            p.pos.add(p.vel);
             p.life -= 0.02;
-            if(p.life <= 0) this.particles.splice(i,1);
-        }
+            if(p.life <= 0) { item.active = false; return; }
+            this.ctx.fillStyle = p.color; this.ctx.globalAlpha = p.life;
+            this.ctx.fillRect(p.pos.x, p.pos.y, 4, 4);
+        });
+        this.ctx.globalAlpha = 1;
+
+        this.time -= dt;
+        document.getElementById('ui-time').innerText = Math.max(0, this.time).toFixed(1);
+        document.getElementById('monitor').innerText = `FPS: ${this.fps} | ENT_ACTIVE: ${this.entityPool.getActive().length} | PART_ACTIVE: ${this.particlePool.getActive().length}`;
+
+        if(this.time <= 0) this.over();
+        requestAnimationFrame((t) => this.loop(t));
     },
-    
-    hit(it) {
-        // Particle Burst
-        for(let k=0; k<10; k++) {
-            this.particles.push({
-                x: it.x, y: it.y,
-                vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
-                c: it.type==='bomb'?'#f00':'#ff0', s: Math.random()*5, life: 1
-            });
+
+    hit(e) {
+        const color = e.type === 'bomb' ? '#ff0050' : '#ffd700';
+        for(let i=0; i<15; i++) {
+            const p = this.particlePool.acquire();
+            p.pos.set(e.pos.x, e.pos.y);
+            p.vel.set((Math.random()-0.5)*10, (Math.random()-0.5)*10);
+            p.life = 1.0; p.color = color;
         }
-        
-        if(it.type === 'bomb') {
-            this.score = Math.max(0, this.score - 10);
-            User.stats.bombs++;
-            Synth.play(100, 'sawtooth', 0.3);
+
+        if(e.type === 'bomb') {
+            this.score = Math.max(0, this.score - 20);
+            AudioSys.play(100, 'sawtooth', 0.3);
+            if(navigator.vibrate) navigator.vibrate(200);
         } else {
-            let val = it.type==='star'?5:1;
-            if(User.skin === 'gold') val = Math.ceil(val * 1.2);
-            this.score += val;
-            User.stats.stars++;
-            Synth.play(800 + (this.score%5)*100, 'sine', 0.1);
+            this.score += 10;
+            AudioSys.play(1000 + (this.score % 500), 'sine', 0.1);
         }
         document.getElementById('ui-score').innerText = this.score;
-        checkAchievs();
     },
-    
-    spawn() {
+
+    spawner() {
         if(!this.running) return;
-        if(this.items.length < 20) {
-            let r = Math.random();
-            let type = r < 0.2 ? 'bomb' : (r < 0.3 ? 'star' : 'coin');
-            this.items.push({
-                x: Math.random()*(this.w-40)+20, y: -50,
-                vy: Math.random()*3 + 3,
-                type: type,
-                icon: type==='bomb'?'💣':(type==='star'?'⭐':'🧧'),
-                rot: 0
-            });
-        }
-        setTimeout(() => this.spawn(), 600);
-    }
-};
-
-/* --- 5. GAME LOGIC CONTROL --- */
-const Game = {
-    init() {
-        Engine.running = true;
-        Engine.score = 0;
-        Engine.time = User.skin === 'time' ? 70 : 60; // Bonus time skin
-        Engine.items = [];
-        User.stats.games++; saveUser();
-        
-        UI.switch('gameScreen');
-        document.getElementById('ui-score').innerText = "0";
-        
-        // Timer
-        let t = setInterval(() => {
-            if(!Engine.running) return clearInterval(t);
-            Engine.time--;
-            document.getElementById('ui-time').innerText = Engine.time;
-            if(Engine.time <= 0) {
-                clearInterval(t);
-                this.over();
-            }
-        }, 1000);
-        
-        Engine.spawn();
+        const e = this.entityPool.acquire();
+        e.pos.set(Math.random()*(this.w-100)+50, -50);
+        e.vy = 5;
+        e.type = Math.random() < 0.2 ? 'bomb' : 'gift';
+        setTimeout(() => this.spawner(), 500);
     },
-    
+
     over() {
-        Engine.running = false;
-        User.money += Engine.score; // Convert score to money
-        saveUser();
-        
-        UI.switch('none'); // Clear
-        document.getElementById('screen-result').classList.remove('hidden'); // Show result overlay
-        
-        // Gacha Logic Integration
-        let luck = Math.min(40, Engine.score / 10);
-        document.getElementById('res-luck').innerText = Math.floor(luck);
-        
-        // Roll Prize immediately for UX
-        let prize = GachaSys.roll(luck);
-        document.getElementById('res-prize').innerText = prize.toLocaleString() + "đ";
-        
-        // Play win sound
-        Synth.play(600, 'square', 0.1); setTimeout(()=>Synth.play(900,'square',0.3), 150);
+        this.running = false;
+        UI.screen('hud', false);
+        UI.open('gacha');
+        const luck = Math.min(40, this.score / 20);
+        document.getElementById('ui-luck').innerText = `LUCK_MODIFIER: +${luck.toFixed(1)}%`;
+        Gacha.init(luck);
     }
 };
 
-/* --- 6. AUDIO SYNTH --- */
-const Synth = {
-    ctx: new (window.AudioContext || window.webkitAudioContext)(),
-    play(f, t, d) {
-        let o = this.ctx.createOscillator(), g = this.ctx.createGain();
-        o.type = t; o.frequency.value = f;
-        g.gain.setValueAtTime(0.1, this.ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + d);
-        o.connect(g); g.connect(this.ctx.destination);
-        o.start(); o.stop(this.ctx.currentTime + d);
-    }
-};
-
-/* --- 7. GACHA SYSTEM (ECONOMY) --- */
-const GachaSys = {
-    table: [
-        {v:10000, w:300}, {v:20000, w:200}, {v:30000, w:150},
-        {v:50000, w:50}, {v:100000, w:10}, {v:500000, w:1}
-    ],
+/* ============================================================================
+   GACHA & UI
+   ============================================================================ */
+const Gacha = {
+    init(luck) {
+        const g = document.getElementById('gacha-grid'); g.innerHTML = '';
+        for(let i=0; i<9; i++) {
+            const el = document.createElement('div'); el.className = 'envelope';
+            el.innerHTML = `<div class="env-back">?</div><div style="backface-visibility:hidden">🧧</div>`;
+            el.onclick = () => {
+                if(el.classList.contains('flipped')) return;
+                const p = this.roll(luck);
+                el.classList.add('flipped');
+                el.querySelector('.env-back').innerText = (p/1000) + 'k';
+                AudioSys.play(880, 'sine', 0.5);
+                setTimeout(() => UI.result(p), 1200);
+            };
+            g.appendChild(el);
+        }
+    },
     roll(luck) {
-        let total = 0;
-        let pool = this.table.map(i => {
+        const t = [ {v:100000, w:1}, {v:50000, w:10}, {v:20000, w:40}, {v:10000, w:150} ];
+        let tot = 0;
+        const pool = t.map(i => {
             let w = i.w;
-            if(i.v >= 50000) w *= (1 + luck/20);
-            else w = Math.max(w*0.6, w*(1-luck/100)); // Floor 60%
-            total += w; return {v: i.v, cw: total};
+            if(i.v >= 50000) w *= (1 + luck/10);
+            else w = Math.max(w * 0.65, w * (1 - luck/100));
+            tot += w; return { v: i.v, cw: tot };
         });
-        let r = Math.random() * total;
-        return pool.find(i => r <= i.cw).v;
+        const r = Math.random() * tot;
+        return pool.find(p => r <= p.cw).v;
     }
 };
 
-/* --- 8. UI & ADMIN MANAGER --- */
 const UI = {
-    switch(id) {
-        document.getElementById('menuScreen').style.display = 'none';
-        document.getElementById('gameScreen').classList.add('hidden');
-        document.getElementById('hud').classList.add('hidden');
-        document.querySelectorAll('.panel-overlay').forEach(p => p.classList.add('hidden'));
-        
-        if(id === 'gameScreen') {
-            document.getElementById('gameScreen').classList.remove('hidden');
-            document.getElementById('hud').classList.remove('hidden');
-        } else if (id !== 'none') {
-            document.getElementById('menuScreen').style.display = 'flex';
-        }
-    },
-    open(panel) {
-        const el = document.getElementById(`screen-${panel}`);
-        el.classList.remove('hidden');
-        if(panel === 'skins') renderSkins();
-        if(panel === 'achievements') renderAchievs();
-        if(panel === 'admin') loadAdmin();
-    },
-    close(panel) {
-        document.getElementById(`screen-${panel}`).classList.add('hidden');
-    },
-    toast(msg) {
-        const d = document.createElement('div');
-        d.className = 'toast'; d.innerText = msg;
-        document.getElementById('notify-area').appendChild(d);
-        setTimeout(() => d.remove(), 3000);
-    }
+    open(id) { document.getElementById(`screen-${id}`).style.display = 'flex'; },
+    closeAll() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); },
+    screen(id, s) { document.getElementById(id).className = s ? '' : 'hidden'; },
+    result(p) { this.closeAll(); this.open('result'); document.getElementById('res-prize').innerText = p.toLocaleString() + "đ"; }
 };
 
-// Render Skins
-function renderSkins() {
-    const list = document.getElementById('skin-list');
-    list.innerHTML = '';
-    document.getElementById('wallet-val').innerText = User.money.toLocaleString() + "đ";
-    
-    for(let k in Skins) {
-        const s = Skins[k];
-        const owned = User.unlockedSkins.includes(k);
-        const active = User.skin === k;
-        
-        const el = document.createElement('div');
-        el.className = `skin-card ${active ? 'active' : ''}`;
-        el.innerHTML = `
-            <div style="font-size:2rem">${s.icon}</div>
-            <div style="color:${s.color}; font-weight:bold">${s.name}</div>
-            <div style="font-size:0.7rem; color:#aaa">${s.bonus}</div>
-            ${!owned ? `<div style="color:#fff; margin-top:5px;">${s.price}đ</div>` : ''}
-        `;
-        
-        el.onclick = () => {
-            if(owned) {
-                User.skin = k;
-                saveUser();
-                renderSkins();
-            } else {
-                if(User.money >= s.price) {
-                    if(confirm(`Mua ${s.name} với giá ${s.price}đ?`)) {
-                        User.money -= s.price;
-                        User.unlockedSkins.push(k);
-                        User.skin = k;
-                        saveUser();
-                        renderSkins();
-                        UI.toast(`Đã mua ${s.name}!`);
-                    }
-                } else alert("Không đủ tiền!");
-            }
-        };
-        list.appendChild(el);
-    }
-}
-
-// Check Achievements
-function checkAchievs() {
-    Achievements.forEach(a => {
-        if(!User.achievements.includes(a.id) && a.cond(User)) {
-            User.achievements.push(a.id);
-            UI.toast(`🏆 Mở khóa: ${a.name}`);
-            saveUser();
-        }
-    });
-}
-
-function renderAchievs() {
-    const list = document.getElementById('ach-list');
-    list.innerHTML = '';
-    Achievements.forEach(a => {
-        const unlocked = User.achievements.includes(a.id);
-        list.innerHTML += `
-            <div class="ach-item ${unlocked ? 'unlocked' : ''}">
-                <div>
-                    <div>${a.name}</div>
-                    <div style="font-size:0.7rem">${a.desc}</div>
-                </div>
-                <div>${unlocked ? '✅' : '🔒'}</div>
-            </div>
-        `;
-    });
-}
-
-// Admin Logic
-const Admin = {
-    login() {
-        const p = document.getElementById('adm-pass').value;
-        if(p === 'Quoc2007@') {
-            document.getElementById('adm-controls').classList.remove('hidden');
-            document.getElementById('adm-cfg').value = JSON.stringify(GachaSys.table, null, 2);
-        } else alert('Sai mật khẩu');
-    },
-    save() {
-        try {
-            GachaSys.table = JSON.parse(document.getElementById('adm-cfg').value);
-            UI.toast('System Updated');
-        } catch(e) { alert('JSON Error'); }
-    },
-    setPhys(k, v) {
-        Engine.phys[k] = v;
-        UI.toast(`Physics ${k} set to ${v}`);
-    }
-};
-
-// Start
-Engine.init();
+window.onload = () => Kernel.resize();
 </script>
 </body>
 </html>
